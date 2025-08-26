@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détail de la sortie : {{ sortie.name }}{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Afficher une sortie</h1>
+
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Nom de la sortie :</strong> {{ sortie.name }}</p>
+                <p><strong>Date et heure de la sortie :</strong> {{ sortie.startDatetime ? sortie.startDatetime|date('d/m/Y H:i') : '—' }}</p>
+                <p><strong>Date limite d'inscription :</strong> {{ sortie.registrationDeadline ? sortie.registrationDeadline|date('d/m/Y H:i') : '—' }}</p>
+                <p><strong>Nombre de places :</strong> {{ sortie.participants.count }} / {{ sortie.maxRegistrations }}</p>
+                <p><strong>Durée :</strong> {{ sortie.duration }} minutes</p>
+                <p><strong>Description et infos :</strong> {{ sortie.description }}</p>
+            </div>
+
+            <div class="col-md-6">
+                <p><strong>Ville organisatrice :</strong> {{ sortie.place.city.nom }}</p>
+                <p><strong>Lieu :</strong> {{ sortie.place.nom }}</p>
+                <p><strong>Rue :</strong> {{ sortie.place.rue }}</p>
+                <p><strong>Code postal :</strong> {{ sortie.place.city.codePostal }}</p>
+                <p><strong>Latitude :</strong> {{ sortie.place.latitude }}</p>
+                <p><strong>Longitude :</strong> {{ sortie.place.longitude }}</p>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h2>Liste des participants inscrits :</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                <tr>
+                    <th>Pseudo</th>
+                    <th>Nom</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for participant in sortie.participants %}
+                    <tr>
+                        <td>{{ participant.pseudo }}</td>
+                        <td>{{ participant.prenom }} {{ participant.nom }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2" class="text-center">Aucun participant n'est encore inscrit.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_organizer %}
+            <a href="{{ path('event_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
+        {% endif %}
+
+        <a href="{{ path('sortie_list') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+    </div>
+{% endblock %}

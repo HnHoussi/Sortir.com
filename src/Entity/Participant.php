@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ParticipantRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ParticipantRepository::class)]
@@ -40,6 +42,24 @@ class Participant
     #[ORM\ManyToOne(inversedBy: 'participants')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Campus $Campus = null;
+
+    /**
+     * @var Collection<int, Sortie>
+     */
+    #[ORM\OneToMany(targetEntity: Sortie::class, mappedBy: 'organisateur', orphanRemoval: true)]
+    private Collection $sortiesOrganisees;
+
+    /**
+     * @var Collection<int, Inscription>
+     */
+    #[ORM\OneToMany(targetEntity: Inscription::class, mappedBy: 'participant', orphanRemoval: true)]
+    private Collection $est_inscrit;
+
+    public function __construct()
+    {
+        $this->sortiesOrganisees = new ArrayCollection();
+        $this->est_inscrit = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -150,6 +170,66 @@ class Participant
     public function setCampus(?Campus $Campus): static
     {
         $this->Campus = $Campus;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Sortie>
+     */
+    public function getSortiesOrganisees(): Collection
+    {
+        return $this->sortiesOrganisees;
+    }
+
+    public function addSortiesOrganisee(Sortie $sortiesOrganisee): static
+    {
+        if (!$this->sortiesOrganisees->contains($sortiesOrganisee)) {
+            $this->sortiesOrganisees->add($sortiesOrganisee);
+            $sortiesOrganisee->setOrganisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSortiesOrganisee(Sortie $sortiesOrganisee): static
+    {
+        if ($this->sortiesOrganisees->removeElement($sortiesOrganisee)) {
+            // set the owning side to null (unless already changed)
+            if ($sortiesOrganisee->getOrganisateur() === $this) {
+                $sortiesOrganisee->setOrganisateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Inscription>
+     */
+    public function getEstInscrit(): Collection
+    {
+        return $this->est_inscrit;
+    }
+
+    public function addEstInscrit(Inscription $estInscrit): static
+    {
+        if (!$this->est_inscrit->contains($estInscrit)) {
+            $this->est_inscrit->add($estInscrit);
+            $estInscrit->setParticipant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEstInscrit(Inscription $estInscrit): static
+    {
+        if ($this->est_inscrit->removeElement($estInscrit)) {
+            // set the owning side to null (unless already changed)
+            if ($estInscrit->getParticipant() === $this) {
+                $estInscrit->setParticipant(null);
+            }
+        }
 
         return $this;
     }
