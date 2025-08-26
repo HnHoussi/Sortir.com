@@ -39,7 +39,7 @@ final class SortieController extends AbstractController
 
             $this->addFlash('success', 'Sortie créé avec succès !');
 
-            return $this->redirectToRoute('wish_detail', ['id' => $sortie->getId()]);
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
         return $this->render('sortie/create.html.twig', [
