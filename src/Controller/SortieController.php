@@ -25,7 +25,7 @@ final class SortieController extends AbstractController
     #[Route('/create', name: '_create')]
     public function create(EntityManagerInterface $em, Request $request): Response
     {
-        // Logique pour créer un souhait
+        // Logique pour créer un sortie
         $sortie = new Sortie();
         $form = $this->createForm(SortieType::class, $sortie);
         $form->handleRequest($request);
@@ -39,11 +39,11 @@ final class SortieController extends AbstractController
 
             $this->addFlash('success', 'Sortie créé avec succès !');
 
-            return $this->redirectToRoute('wish_detail', ['id' => $wish->getId()]);
+            return $this->redirectToRoute('wish_detail', ['id' => $sortie->getId()]);
         }
 
-        return $this->render('wish/create.html.twig', [
-            'wish_form' => $form,
+        return $this->render('sortie/create.html.twig', [
+            'sortie_form' => $form,
         ]);
     }
 
