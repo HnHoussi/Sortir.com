@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Sorties{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="mb-4">📅 Sorties disponibles</h1>
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Date de début</th>
+                <th>Durée</th>
+                <th>Lieu</th>
+                <th>Organisateur</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for sortie in sorties %}
+                <tr>
+                    <td>{{ sortie.id }}</td>
+                    <td>{{ sortie.name }}</td>
+                    <td>{{ sortie.startDatetime ? sortie.startDatetime|date('d/m/Y H:i') : '—' }}</td>
+                    <td>{{ sortie.duration }} min</td>
+                    <td>{{ sortie.place }}</td>
+                    <td>{{ sortie.organizer }}</td>
+                    <td>
+                        <a href="{{ path('#', {'id': sortie.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                        <a href="{{ path('#', {'id': sortie.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucune sortie disponible.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
