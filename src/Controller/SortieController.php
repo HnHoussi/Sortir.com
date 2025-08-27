@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Participant;
 use App\Entity\Sortie;
+use App\Entity\User;
 use App\Form\SortieCancellationType;
 use App\Form\SortieFilterType;
 use App\Form\SortieType;
@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class SortieController extends AbstractController
 {
     #[Route('/', name: '_list')]
-    public function list(SortieRepository $sortieRepository, Request $request, Participant $user): Response
+    public function list(SortieRepository $sortieRepository, Request $request, User $user): Response
     {
         $form = $this->createForm(SortieFilterType::class);
         $form->handleRequest($request);
@@ -33,6 +33,7 @@ final class SortieController extends AbstractController
         }
         return $this->render('sortie/list.html.twig', [
             'sorties' => $sorties,
+            'form' => $form,
         ]);
     }
 
