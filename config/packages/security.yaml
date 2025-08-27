@@ -48,6 +48,12 @@ when@test:
             # important to generate secure password hashes. In tests however, secure hashes
             # are not important, waste resources and increase test times. The following
             # reduces the work factor to the lowest possible values.
+
+#             Pour supprimer le hasherPassword dans un premier temps
+#                 App\Entity\Participant:
+#                    algorithm: plaintext
+#                    ignore_case: false
+
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
                 cost: 4 # Lowest possible value for bcrypt
