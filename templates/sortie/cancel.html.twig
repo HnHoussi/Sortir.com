@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Annuler la sortie : {{ sortie.name }}{% endblock %}
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Annuler une sortie</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <p>Veuillez confirmer l'annulation de la sortie **{{ sortie.name }}** et en indiquer la raison :</p>
+
+                {{ form_start(form) }}
+                {{ form_widget(form) }}
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="submit" class="btn btn-danger">Confirmer l'annulation</button>
+                    <a href="{{ path('sortie_detail', {'id': sortie.id}) }}" class="btn btn-secondary">Retour à la sortie</a>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
