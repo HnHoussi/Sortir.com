@@ -97,7 +97,7 @@ final class SortieController extends AbstractController
             return $this->redirectToRoute('_list');
         }
 
-        return $this->render('sortie/annuler.html.twig', [
+        return $this->render('sortie/cancel.html.twig', [
             'sortie' => $sortie,
             'form' => $form->createView(),
         ]);
