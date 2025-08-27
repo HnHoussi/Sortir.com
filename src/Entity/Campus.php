@@ -19,15 +19,16 @@ class Campus
     private ?string $campus_name = null;
 
     /**
-     * @var Collection<int, Participant>
+     * @var Collection<int, User>
      */
-    #[ORM\OneToMany(targetEntity: Participant::class, mappedBy: 'Campus', orphanRemoval: true)]
-    private Collection $participants;
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'campus', orphanRemoval: true)]
+    private Collection $users;
 
     public function __construct()
     {
-        $this->participants = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -47,32 +48,33 @@ class Campus
     }
 
     /**
-     * @return Collection<int, Participant>
+     * @return Collection<int, User>
      */
-    public function getParticipants(): Collection
+    public function getUsers(): Collection
     {
-        return $this->participants;
+        return $this->users;
     }
 
-    public function addParticipant(Participant $participant): static
+    public function addUser(User $user): static
     {
-        if (!$this->participants->contains($participant)) {
-            $this->participants->add($participant);
-            $participant->setCampus($this);
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
+            $user->setCampus($this);
         }
 
         return $this;
     }
 
-    public function removeParticipant(Participant $participant): static
+    public function removeUser(User $user): static
     {
-        if ($this->participants->removeElement($participant)) {
+        if ($this->users->removeElement($user)) {
             // set the owning side to null (unless already changed)
-            if ($participant->getCampus() === $this) {
-                $participant->setCampus(null);
+            if ($user->getCampus() === $this) {
+                $user->setCampus(null);
             }
         }
 
         return $this;
     }
+
 }

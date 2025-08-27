@@ -49,15 +49,6 @@ class Sortie
     #[ORM\Column]
     private ?int $state = null;
 
-    #[ORM\ManyToOne(inversedBy: 'sortiesOrganisees')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Participant $organisateur = null;
-
-    /**
-     * @var Collection<int, Inscription>
-     */
-    #[ORM\OneToMany(targetEntity: Inscription::class, mappedBy: 'sortie', orphanRemoval: true)]
-    private Collection $inscriptions;
 
     #[ORM\ManyToOne(inversedBy: 'sorties')]
     #[ORM\JoinColumn(nullable: false)]
@@ -66,10 +57,21 @@ class Sortie
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $cancellationReason = null;
 
+    #[ORM\ManyToOne(inversedBy: 'sortiesOrganisees')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $organisator = null;
+
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'sortiesInscrit')]
+    private Collection $user;
+
     public function __construct()
     {
-        $this->inscriptions = new ArrayCollection();
+        $this->user = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -208,47 +210,6 @@ class Sortie
         return $this;
     }
 
-    public function getOrganisateur(): ?Participant
-    {
-        return $this->organisateur;
-    }
-
-    public function setOrganisateur(?Participant $organisateur): static
-    {
-        $this->organisateur = $organisateur;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Inscription>
-     */
-    public function getInscriptions(): Collection
-    {
-        return $this->inscriptions;
-    }
-
-    public function addInscription(Inscription $inscription): static
-    {
-        if (!$this->inscriptions->contains($inscription)) {
-            $this->inscriptions->add($inscription);
-            $inscription->setSortie($this);
-        }
-
-        return $this;
-    }
-
-    public function removeInscription(Inscription $inscription): static
-    {
-        if ($this->inscriptions->removeElement($inscription)) {
-            // set the owning side to null (unless already changed)
-            if ($inscription->getSortie() === $this) {
-                $inscription->setSortie(null);
-            }
-        }
-
-        return $this;
-    }
 
     public function getStatus(): ?Status
     {
@@ -270,6 +231,42 @@ class Sortie
     public function setCancellationReason(?string $cancellationReason): static
     {
         $this->cancellationReason = $cancellationReason;
+
+        return $this;
+    }
+
+    public function getOrganisator(): ?User
+    {
+        return $this->organisator;
+    }
+
+    public function setOrganisator(?User $organisator): static
+    {
+        $this->organisator = $organisator;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUser(): Collection
+    {
+        return $this->user;
+    }
+
+    public function addUser(User $user): static
+    {
+        if (!$this->user->contains($user)) {
+            $this->user->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): static
+    {
+        $this->user->removeElement($user);
 
         return $this;
     }
