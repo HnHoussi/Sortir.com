@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Mon Profil</h1>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item"><strong>Pseudo :</strong> {{ app.user.pseudo }}</li>
+                            <li class="list-group-item"><strong>Nom :</strong> {{ app.user.lastName }}</li>
+                            <li class="list-group-item"><strong>Prénom :</strong> {{ app.user.firstName }}</li>
+                            <li class="list-group-item"><strong>Email :</strong> {{ app.user.email }}</li>
+                            <li class="list-group-item"><strong>Téléphone :</strong> {{ app.user.phone ?? 'Non renseigné' }}</li>
+                            <li class="list-group-item"><strong>Campus :</strong> {{ app.user.campus.campusName ?? 'Non renseigné' }}</li>
+                        </ul>
+
+                        <div class="text-center">
+                            <a href="{{ path('app_user_profile_edit') }}" class="btn btn-primary me-2">Modifier mon profil</a>
+                            <a href="{{ path('app_home') }}" class="btn btn-secondary">Retour à l'accueil</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

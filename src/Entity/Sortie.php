@@ -259,6 +259,7 @@ class Sortie
     {
         if (!$this->users->contains($user)) {
             $this->users->add($user);
+            $user->addSortiesInscrit($this);
         }
 
         return $this;
@@ -267,6 +268,7 @@ class Sortie
     public function removeUser(User $user): static
     {
         $this->users->removeElement($user);
+        $user->removeSortiesInscrit($this);
 
         return $this;
     }
