@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+    <h1>BONJOUR {{ app.user ? app.user.firstName : '' }}!</h1>
+
+    {% if app.user %}
+        <p>Vous êtes connecté... ENJOY</p>
+    {% else %}
+        <p><a href="{{ path('app_login') }}">Se connecter</a> pour accéder à votre compte</p>
+    {% endif %}
+{% endblock %}
