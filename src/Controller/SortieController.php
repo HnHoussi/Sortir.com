@@ -15,10 +15,10 @@ use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-#[Route('/sortie')]
+#[Route('/sortie', name: 'sortie')]
 final class SortieController extends AbstractController
 {
-    #[Route('/', name: '_list')]
+    #[Route('', name: '_list')]
     public function list(SortieRepository $sortieRepository, Request $request, User $user): Response
     {
         $form = $this->createForm(SortieFilterType::class);
@@ -40,7 +40,7 @@ final class SortieController extends AbstractController
     #[Route('/create', name: '_create')]
     public function create(EntityManagerInterface $em, Request $request): Response
     {
-        // Logique pour créer un sortie
+        // Logique pour créer une sortie
         $sortie = new Sortie();
         $form = $this->createForm(SortieType::class, $sortie);
         $form->handleRequest($request);
@@ -65,11 +65,8 @@ final class SortieController extends AbstractController
     #[Route('/{id}', name: '_detail')]
     public function detail(Sortie $sortie): Response
     {
-        if (!$sortie) {
-            throw $this->createNotFoundException('Sortie inexistante');
-        }
 
-        $isOrganizer = $this->getUser() === $sortie->getOrganisateur();
+        $isOrganizer = $this->getUser() === $sortie->getOrganisator();
 
         return $this->render('sortie/detail.html.twig', [
             'sortie' => $sortie,
@@ -80,7 +77,7 @@ final class SortieController extends AbstractController
     #[Route('/{id}/cancel', name: '_cancel')]
     public function cancel (Sortie $sortie, Request $request, EntityManagerInterface $em, StatusRepository $statusRepository): Response
     {
-        if ($sortie->getOrganisateur() !== $this->getUser()) {
+        if ($sortie->getOrganisator() !== $this->getUser()) {
             throw new AccessDeniedException('Vous n\'êtes pas l\'organisateur de cette sortie.');
         }
 

@@ -2,7 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\Participant;
+use App\Entity\User;
 use App\Entity\Sortie;
 use App\Entity\Status;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;

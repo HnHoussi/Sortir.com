@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Participant;
+use App\Entity\User;
 use App\Entity\Sortie;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -43,7 +43,7 @@ class SortieRepository extends ServiceEntityRepository
     //    }
 
 
-    public function findFilteredFromForm(array $filters, Participant $user): array
+    public function findFilteredFromForm(array $filters, User $user): array
     {
         $qb = $this->createQueryBuilder('s')
             ->leftJoin('s.place', 'p')
@@ -51,7 +51,7 @@ class SortieRepository extends ServiceEntityRepository
             ->leftJoin('s.organisateur', 'o')
             ->leftJoin('s.status', 'st')
             ->leftJoin('s.inscriptions', 'i')
-            ->leftJoin('i.participant', 'ip')
+            ->leftJoin('i.user', 'ip')
             ->addSelect('p', 'c', 'o', 'st');
 
         if (!empty($filters['name'])) {
@@ -79,8 +79,8 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('user', $user);
         }
 
-        if (!empty($filters['participant'])) {
-            $qb->andWhere(':user MEMBER OF s.participants')
+        if (!empty($filters['user'])) {
+            $qb->andWhere(':user MEMBER OF s.users')
                 ->setParameter('user', $user);
         }
 

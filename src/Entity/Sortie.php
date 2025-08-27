@@ -65,11 +65,11 @@ class Sortie
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'sortiesInscrit')]
-    private Collection $user;
+    private Collection $users;
 
     public function __construct()
     {
-        $this->user = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
 
@@ -250,15 +250,15 @@ class Sortie
     /**
      * @return Collection<int, User>
      */
-    public function getUser(): Collection
+    public function getUsers(): Collection
     {
-        return $this->user;
+        return $this->users;
     }
 
     public function addUser(User $user): static
     {
-        if (!$this->user->contains($user)) {
-            $this->user->add($user);
+        if (!$this->users->contains($user)) {
+            $this->users->add($user);
         }
 
         return $this;
@@ -266,7 +266,7 @@ class Sortie
 
     public function removeUser(User $user): static
     {
-        $this->user->removeElement($user);
+        $this->users->removeElement($user);
 
         return $this;
     }
