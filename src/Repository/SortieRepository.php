@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Participant;
 use App\Entity\Sortie;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -40,4 +41,52 @@ class SortieRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+
+    public function findFilteredFromForm(array $filters, Participant $user): array
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->leftJoin('s.place', 'p')
+            ->leftJoin('p.city', 'c')
+            ->leftJoin('s.organisateur', 'o')
+            ->leftJoin('s.status', 'st')
+            ->leftJoin('s.inscriptions', 'i')
+            ->leftJoin('i.participant', 'ip')
+            ->addSelect('p', 'c', 'o', 'st');
+
+        if (!empty($filters['name'])) {
+            $qb->andWhere('s.name LIKE :name')
+                ->setParameter('name', '%' . $filters['name'] . '%');
+        }
+
+        if (!empty($filters['city'])) {
+            $qb->andWhere('c.id = :city')
+                ->setParameter('city', $filters['city']->getId());
+        }
+
+        if (!empty($filters['campus'])) {
+            $qb->andWhere('o.campus = :campus')
+                ->setParameter('campus', $filters['campus']->getId());
+        }
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('st.id = :status')
+                ->setParameter('status', $filters['status']->getId());
+        }
+
+        if (!empty($filters['organizer'])) {
+            $qb->andWhere('s.organisateur = :user')
+                ->setParameter('user', $user);
+        }
+
+        if (!empty($filters['participant'])) {
+            $qb->andWhere(':user MEMBER OF s.participants')
+                ->setParameter('user', $user);
+        }
+
+        return $qb->orderBy('s.startDatetime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }
