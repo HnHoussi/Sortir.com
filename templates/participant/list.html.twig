@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Participants{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="mb-4">👥 Participants inscrits</h1>
+
+        {{ form_start(form) }}
+        <div class="row g-3">
+            {% for field in form %}
+                <div class="col-md-4">
+                    {{ form_row(field) }}
+                </div>
+            {% endfor %}
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-success w-100">Rechercher</button>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+
+    <div class="container mt-5">
+        <table id="participantsTable" class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Campus</th>
+                <th>Rôle</th>
+                <th>Activité</th>
+                <th>Inscription</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for participant in participants %}
+                <tr>
+                    <td>{{ participant.id }}</td>
+                    <td>{{ participant.fullName }}</td>
+                    <td>{{ participant.email }}</td>
+                    <td>{{ participant.phoneNumber ?: '—' }}</td>
+                    <td>{{ participant.campus ?: '—' }}</td>
+                    <td>
+                        {% if participant.role == 'admin' %}
+                            <span class="badge bg-danger">Admin</span>
+                        {% elseif participant.role == 'guest' %}
+                            <span class="badge bg-secondary">Invité</span>
+                        {% else %}
+                            <span class="badge bg-primary">{{ participant.role }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ participant.activity ?: '—' }}</td>
+                    <td>{{ participant.registrationDate ? participant.registrationDate|date('d/m/Y') : '—' }}</td>
+                    <td>
+                        <a href="{{ path('participant_detail', {'id': participant.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="9" class="text-center">Aucun participant trouvé.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# DataTables & jQuery #}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#participantsTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+                },
+                pageLength: 10,
+                lengthMenu: [5, 10, 25, 50],
+                order: [[0, 'asc']]
+            });
+        });
+    </script>
+{% endblock %}
