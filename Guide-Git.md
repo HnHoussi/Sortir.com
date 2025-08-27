@@ -20,8 +20,8 @@ git checkout feature/nom-de-ta-fonctionnalité
 # Mettre à jour ta branche locale depuis le remote (au cas où tu as déjà poussé hier)
 git pull
 
-# Récupérer les dernières modifications de l’équipe depuis develop
-git pull origin develop
+# Récupérer les dernières modifications de l’équipe depuis dev
+git pull origin dev
 ```
 
 ---
@@ -45,13 +45,13 @@ git push origin feature/nom-de-ta-fonctionnalité
 
 ---
 
-## 🔄 **Mettre à jour ta branche avec develop**
+## 🔄 **Mettre à jour ta branche avec dev**
 
-Quand l’équipe a fusionné de nouvelles fonctionnalités dans `develop` :
+Quand l’équipe a fusionné de nouvelles fonctionnalités dans `dev` :
 
 ```bash
 git checkout feature/nom-de-ta-fonctionnalité
-git pull origin develop
+git pull origin dev
 ```
 
 Résoudre les conflits si besoin.
@@ -60,23 +60,23 @@ Résoudre les conflits si besoin.
 
 ## 🚀 **Quand ta fonctionnalité est prête**
 
-Fusionner ta branche dans `develop` :
+Fusionner ta branche dans `dev` :
 
 ```bash
 # Se placer sur develop
-git checkout develop
+git checkout dev
 
 # Mettre à jour develop depuis le remote
-git pull origin develop
+git pull origin dev
 
 # Fusionner ta branche de fonctionnalité dans develop
 git merge feature/nom-de-ta-fonctionnalité
 
 # Pousser develop mis à jour
-git push origin develop
+git push origin dev
 ```
 
-Ou créer une merge request / pull request de `feature/nom-de-ta-fonctionnalité` → `develop`.
+Ou créer une merge request / pull request de `feature/nom-de-ta-fonctionnalité` → `dev`.
 
 ---
 
@@ -86,7 +86,7 @@ Ou créer une merge request / pull request de `feature/nom-de-ta-fonctionnalité
 # Avant de commencer
 git checkout feature/nom-de-ta-fonctionnalité
 git pull
-git pull origin develop
+git pull origin dev
 
 # Après avoir travaillé
 git add .
@@ -96,10 +96,10 @@ git push origin feature/nom-de-ta-fonctionnalité
 
 ```bash
 # Quand la fonctionnalité est prête
-git checkout develop
-git pull origin develop
+git checkout dev
+git pull origin dev
 git merge feature/nom-de-ta-fonctionnalité
-git push origin develop
+git push origin dev
 ```
 
 ---
@@ -111,7 +111,7 @@ main
   |
   o---------o---------o   ← versions stables en production
             \
-             develop
+             dev
               o----o----o----o   ← intégration des fonctionnalités
                \    \    \    \
                 \    \    \    feature/login
@@ -123,5 +123,5 @@ main
                       o--o--o
 ```
 
-> Chaque fonctionnalité a sa propre branche. Quand la fonctionnalité est prête, on fusionne dans `develop`. Quand `develop` est stable, on fusionne dans `main`.
+> Chaque fonctionnalité a sa propre branche. Quand la fonctionnalité est prête, on fusionne dans `dev`. Quand `dev` est stable, on fusionne dans `main`.
 
