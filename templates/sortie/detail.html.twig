@@ -17,10 +17,10 @@
             </div>
 
             <div class="col-md-6">
-                <p><strong>Ville organisatrice :</strong> {{ sortie.place.city.nom }}</p>
-                <p><strong>Lieu :</strong> {{ sortie.place.nom }}</p>
-                <p><strong>Rue :</strong> {{ sortie.place.rue }}</p>
-                <p><strong>Code postal :</strong> {{ sortie.place.city.codePostal }}</p>
+                <p><strong>Ville organisatrice :</strong> {{ sortie.place.city.cityName }}</p>
+                <p><strong>Lieu :</strong> {{ sortie.place.placeName }}</p>
+                <p><strong>Rue :</strong> {{ sortie.place.street }}</p>
+                <p><strong>Code postal :</strong> {{ sortie.place.city.postalCode }}</p>
                 <p><strong>Latitude :</strong> {{ sortie.place.latitude }}</p>
                 <p><strong>Longitude :</strong> {{ sortie.place.longitude }}</p>
             </div>
@@ -41,7 +41,7 @@
                 {% for user in sortie.users %}
                     <tr>
                         <td>{{ user.pseudo }}</td>
-                        <td>{{ user.prenom }} {{ user.nom }}</td>
+                        <td>{{ user.firstname }} {{ user.lastname }}</td>
                     </tr>
                 {% else %}
                     <tr>

@@ -43,8 +43,10 @@ class Sortie
     #[ORM\Column]
     private ?int $organizer = null;
 
-    #[ORM\Column]
-    private ?int $place = null;
+    #[ORM\ManyToOne(targetEntity: Place::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Place $place = null;
+
 
     #[ORM\Column]
     private ?int $state = null;
@@ -186,17 +188,17 @@ class Sortie
         return $this;
     }
 
-    public function getPlace(): ?int
+    public function getPlace(): ?Place
     {
         return $this->place;
     }
 
-    public function setPlace(int $place): static
+    public function setPlace(?Place $place): static
     {
         $this->place = $place;
-
         return $this;
     }
+
 
     public function getState(): ?int
     {
