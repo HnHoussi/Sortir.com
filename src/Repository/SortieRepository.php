@@ -50,9 +50,11 @@ class SortieRepository extends ServiceEntityRepository
             ->leftJoin('p.city', 'c')
             ->leftJoin('s.organisator', 'o')
             ->leftJoin('s.status', 'st')
-//            ->leftJoin('s.inscriptions', 'i')
-//            ->leftJoin('i.user', 'ip')
             ->addSelect('p', 'c', 'o', 'st');
+
+        //Exclusion des sorties archivées de l'afficahge
+        $qb->andWhere('st.status_label != :archived_status')
+            ->setParameter('archived_status', 'Archivée');
 
         if (!empty($filters['name'])) {
             $qb->andWhere('s.name LIKE :name')
@@ -69,9 +71,9 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('campus', $filters['campus']->getId());
         }
 
-        if (!empty($filters['status'])) {
-            $qb->andWhere('st.id = :status')
-                ->setParameter('status', $filters['status']->getId());
+        if (!empty($filters['statut'])) {
+            $qb->andWhere('st.id = :status_id')
+                ->setParameter('status_id', $filters['statut']->getId());
         }
 
         if (!empty($filters['organisator'])) {
@@ -85,6 +87,18 @@ class SortieRepository extends ServiceEntityRepository
         }
 
         return $qb->orderBy('s.start_datetime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOldSortiesForArchiving(\DateTime $dateLimit): array
+    {
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.status', 'st')
+            ->andWhere('st.status_label IN (:statusCodes)')
+            ->andWhere('s.start_datetime < :dateLimit')
+            ->setParameter('statusCodes', ['Terminée', 'Annulée'])
+            ->setParameter('dateLimit', $dateLimit)
             ->getQuery()
             ->getResult();
     }

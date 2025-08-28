@@ -2,10 +2,10 @@
 
 namespace App\Form;
 
+use App\Repository\StatusRepository;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -22,7 +22,7 @@ class SortieFilterType extends AbstractType
                 'label' => 'Nom de la sortie',
                 'required' => false,
             ])
-            ->add('city', EntityType::class, [
+            ->add('ville', EntityType::class, [
                 'class' => City::class,
                 'choice_label' => 'city_name',
                 'placeholder' => 'Toutes les villes',
@@ -34,13 +34,19 @@ class SortieFilterType extends AbstractType
                 'placeholder' => 'Tous les campus',
                 'required' => false,
             ])
-            ->add('status', EntityType::class, [
+//            SLB : modif du filtre pour ne pas afficher les sorties archivées
+            ->add('statut', EntityType::class, [
                 'class' => Status::class,
                 'choice_label' => 'status_label',
                 'placeholder' => 'Tous les états',
                 'required' => false,
+                'query_builder' => function (StatusRepository $er) {
+                    return $er->createQueryBuilder('s')
+                        ->andWhere('s.status_label != :archived_status')
+                        ->setParameter('archived_status', 'Archivée');
+                }
             ])
-            ->add('organisator', CheckboxType::class, [
+            ->add('organisateur', CheckboxType::class, [
                 'label' => 'Je suis l’organisateur',
                 'required' => false,
             ])
