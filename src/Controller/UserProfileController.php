@@ -12,11 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
+#[IsGranted('ROLE_USER')]
 final class UserProfileController extends AbstractController
 {
     #[Route('/mon-profile', name: 'app_user_profile')]
-    #[IsGranted('ROLE_USER')]
     public function showConnectedUserProfile(): Response
     {
         $user = $this->getUser();
@@ -30,7 +29,6 @@ final class UserProfileController extends AbstractController
     }
 
     #[Route('/mon-profile/edit', name: 'app_user_profile_edit')]
-    #[IsGranted('ROLE_USER')]
     public function editProfile(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
     {
         /** @var User $user */
@@ -44,25 +42,27 @@ final class UserProfileController extends AbstractController
 
         if ($edit_profil_form->isSubmitted() && $edit_profil_form->isValid()) {
 
-            $oldPassword = $edit_profil_form->get('oldPassword')->getData();
+            $newPassword = $edit_profil_form->get('newPassword')->getData();
 
-            // Verify old password
-            if (!$passwordHasher->isPasswordValid($user, $oldPassword)) {
-                $edit_profil_form->get('oldPassword')->addError(
-                    new FormError('Le mot de passe actuel est incorrect.')
-                );
-            } else {
-                // Update password if new password is set
-                $newPassword = $edit_profil_form->get('newPassword')->getData();
-                if ($newPassword) {
+            // Only check old password if a new password is provided
+            if ($newPassword) {
+                $oldPassword = $edit_profil_form->get('oldPassword')->getData();
+
+                if (!$oldPassword || !$passwordHasher->isPasswordValid($user, $oldPassword)) {
+                    $edit_profil_form->get('oldPassword')->addError(
+                        new FormError('Le mot de passe actuel est incorrect.')
+                    );
+                } else {
                     $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
                     $user->setPassword($hashedPassword);
                 }
-
-                $entityManager->flush();
-                $this->addFlash('success', 'Profil mis à jour avec succès !');
-                return $this->redirectToRoute('app_user_profile');
             }
+
+            // Save the other user info regardless of password
+            $entityManager->flush();
+            $this->addFlash('success', 'Profil mis à jour avec succès !');
+
+            return $this->redirectToRoute('app_user_profile');
         }
 
         return $this->render('user_profile/edit-profile.html.twig', [
