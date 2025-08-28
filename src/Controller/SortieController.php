@@ -19,21 +19,22 @@ use Symfony\Component\Routing\Attribute\Route;
 final class SortieController extends AbstractController
 {
     #[Route('', name: '_list')]
-    public function list(SortieRepository $sortieRepository, Request $request, User $user): Response
+    public function list(SortieRepository $sortieRepository, Request $request, ): Response
     {
         $form = $this->createForm(SortieFilterType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        $user = $this->getUser();
+        if ($request->query->has('sortie_filter')) {
             $filters = $form->getData();
             $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
-        }
-        else {
+        } else {
             $sorties = $sortieRepository->findAll();
         }
+
         return $this->render('sortie/list.html.twig', [
             'sorties' => $sorties,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
