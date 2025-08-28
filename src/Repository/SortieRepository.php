@@ -48,10 +48,10 @@ class SortieRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('s')
             ->leftJoin('s.place', 'p')
             ->leftJoin('p.city', 'c')
-            ->leftJoin('s.organisateur', 'o')
+            ->leftJoin('s.organisator', 'o')
             ->leftJoin('s.status', 'st')
-            ->leftJoin('s.inscriptions', 'i')
-            ->leftJoin('i.user', 'ip')
+//            ->leftJoin('s.inscriptions', 'i')
+//            ->leftJoin('i.user', 'ip')
             ->addSelect('p', 'c', 'o', 'st');
 
         if (!empty($filters['name'])) {
@@ -75,7 +75,7 @@ class SortieRepository extends ServiceEntityRepository
         }
 
         if (!empty($filters['organisator'])) {
-            $qb->andWhere('s.organisateur = :user')
+            $qb->andWhere('s.organisator = :user')
                 ->setParameter('user', $user);
         }
 
@@ -84,7 +84,7 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('user', $user);
         }
 
-        return $qb->orderBy('s.startDatetime', 'ASC')
+        return $qb->orderBy('s.start_datetime', 'ASC')
             ->getQuery()
             ->getResult();
     }
