@@ -74,7 +74,7 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('status', $filters['status']->getId());
         }
 
-        if (!empty($filters['organizer'])) {
+        if (!empty($filters['organisator'])) {
             $qb->andWhere('s.organisateur = :user')
                 ->setParameter('user', $user);
         }

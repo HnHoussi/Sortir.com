@@ -24,7 +24,7 @@ class City
     /**
      * @var Collection<int, Place>
      */
-    #[ORM\OneToMany(targetEntity: Place::class, mappedBy: 'City', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Place::class, mappedBy: 'city', orphanRemoval: true)]
     private Collection $places;
 
     public function __construct()

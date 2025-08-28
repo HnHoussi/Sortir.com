@@ -17,12 +17,12 @@
             </div>
 
             <div class="col-md-6">
-                <p><strong>Ville organisatrice :</strong> {{ sortie.place.placeName }}</p>
-                <p><strong>Lieu :</strong> {{ sortie.place }}</p>
+                <p><strong>Ville organisatrice :</strong> {{ sortie.place.city.cityName }}</p>
+                <p><strong>Lieu :</strong> {{ sortie.place.placeName }}</p>
                 <p><strong>Rue :</strong> {{ sortie.place.street }}</p>
-                <p><strong>Code postal :</strong> {{ sortie.place }}</p>
-                <p><strong>Latitude :</strong> {{ sortie.place }}</p>
-                <p><strong>Longitude :</strong> {{ sortie.place}}</p>
+                <p><strong>Code postal :</strong> {{ sortie.place.city.postalCode }}</p>
+                <p><strong>Latitude :</strong> {{ sortie.place.latitude }}</p>
+                <p><strong>Longitude :</strong> {{ sortie.place.longitude }}</p>
             </div>
         </div>
 
@@ -52,7 +52,7 @@
             </table>
         </div>
 
-        {% if is_organizer %}
+        {% if is_organisator %}
             <a href="{{ path('event_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
         {% endif %}
 
