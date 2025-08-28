@@ -34,28 +34,15 @@ class Sortie
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $event_state = null;
-
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo_url = null;
-
-    #[ORM\Column]
-    private ?int $organizer = null;
-
-    #[ORM\Column]
-    private ?int $place = null;
-
-    #[ORM\Column]
-    private ?int $state = null;
-
 
     #[ORM\ManyToOne(inversedBy: 'sorties')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Status $status = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cancellationReason = null;
+    private ?string $cancellation_reason = null;
 
     #[ORM\ManyToOne(inversedBy: 'sortiesOrganisees')]
     #[ORM\JoinColumn(nullable: false)]
@@ -150,18 +137,6 @@ class Sortie
         return $this;
     }
 
-    public function getEventState(): ?int
-    {
-        return $this->event_state;
-    }
-
-    public function setEventState(?int $event_state): static
-    {
-        $this->event_state = $event_state;
-
-        return $this;
-    }
-
     public function getPhotoUrl(): ?string
     {
         return $this->photo_url;
@@ -173,43 +148,6 @@ class Sortie
 
         return $this;
     }
-
-    public function getOrganizer(): ?int
-    {
-        return $this->organizer;
-    }
-
-    public function setOrganizer(int $organizer): static
-    {
-        $this->organizer = $organizer;
-
-        return $this;
-    }
-
-    public function getPlace(): ?int
-    {
-        return $this->place;
-    }
-
-    public function setPlace(int $place): static
-    {
-        $this->place = $place;
-
-        return $this;
-    }
-
-    public function getState(): ?int
-    {
-        return $this->state;
-    }
-
-    public function setState(int $state): static
-    {
-        $this->state = $state;
-
-        return $this;
-    }
-
 
     public function getStatus(): ?Status
     {
@@ -225,12 +163,12 @@ class Sortie
 
     public function getCancellationReason(): ?string
     {
-        return $this->cancellationReason;
+        return $this->cancellation_reason;
     }
 
-    public function setCancellationReason(?string $cancellationReason): static
+    public function setCancellationReason(?string $cancellation_reason): static
     {
-        $this->cancellationReason = $cancellationReason;
+        $this->cancellation_reason = $cancellation_reason;
 
         return $this;
     }
