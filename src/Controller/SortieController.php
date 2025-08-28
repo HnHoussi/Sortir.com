@@ -103,7 +103,7 @@ final class SortieController extends AbstractController
 
             $this->addFlash('success', 'La sortie a été annulée avec succès.');
 
-            return $this->redirectToRoute('_list');
+            return $this->redirectToRoute('sortie_list');
         }
 
         return $this->render('sortie/cancel.html.twig', [

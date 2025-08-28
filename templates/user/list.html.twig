@@ -6,18 +6,18 @@
     <div class="container mt-4">
         <h1 class="mb-4">👥 Users inscrits</h1>
 
-        {{ form_start(form) }}
-        <div class="row g-3">
-            {% for field in form %}
-                <div class="col-md-4">
-                    {{ form_row(field) }}
-                </div>
-            {% endfor %}
-            <div class="col-md-4 d-flex align-items-end">
-                <button class="btn btn-success w-100">Rechercher</button>
-            </div>
-        </div>
-        {{ form_end(form) }}
+{#        {{ form_start(form) }}#}
+{#        <div class="row g-3">#}
+{#            {% for field in form %}#}
+{#                <div class="col-md-4">#}
+{#                    {{ form_row(field) }}#}
+{#                </div>#}
+{#            {% endfor %}#}
+{#            <div class="col-md-4 d-flex align-items-end">#}
+{#                <button class="btn btn-success w-100">Rechercher</button>#}
+{#            </div>#}
+{#        </div>#}
+{#        {{ form_end(form) }}#}
     </div>
 
     <div class="container mt-5">
@@ -30,8 +30,8 @@
                 <th>Téléphone</th>
                 <th>Campus</th>
                 <th>Rôle</th>
-                <th>Activité</th>
-                <th>Inscription</th>
+{#                <th>Activité</th>#}
+{#                <th>Inscription</th>#}
                 <th>Actions</th>
             </tr>
             </thead>
@@ -39,23 +39,23 @@
             {% for user in users %}
                 <tr>
                     <td>{{ user.id }}</td>
-                    <td>{{ user.fullName }}</td>
+                    <td>{{ user.firstName }} {{ user.lastName }}</td>
                     <td>{{ user.email }}</td>
-                    <td>{{ user.phoneNumber ?: '—' }}</td>
-                    <td>{{ user.campus ?: '—' }}</td>
+                    <td>{{ user.phone ?: '—' }}</td>
+                    <td>{{ user.campus.campusName ?: '—' }}</td>
                     <td>
-                        {% if user.role == 'admin' %}
+                        {% if 'ROLE_ADMIN' in user.roles %}
                             <span class="badge bg-danger">Admin</span>
-                        {% elseif user.role == 'guest' %}
+                        {% elseif 'ROLE_USER' in user.roles %}
                             <span class="badge bg-secondary">Invité</span>
                         {% else %}
-                            <span class="badge bg-primary">{{ user.role }}</span>
+                            <span class="badge bg-primary">Utilisateur</span>
                         {% endif %}
                     </td>
-                    <td>{{ user.activity ?: '—' }}</td>
-                    <td>{{ user.registrationDate ? user.registrationDate|date('d/m/Y') : '—' }}</td>
+{#                    <td>{{ user.activity ?: '—' }}</td>#}
+{#                    <td>{{ user.registrationDate ? user.registrationDate|date('d/m/Y') : '—' }}</td>#}
                     <td>
-                        <a href="{{ path('user_detail', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                        <a href="{{ path('_detail', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
                     </td>
                 </tr>
             {% else %}

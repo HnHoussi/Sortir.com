@@ -8,26 +8,26 @@
 
         <div class="card">
             <div class="card-header bg-primary text-white">
-                <h2 class="h5 mb-0">{{ user.fullName }}</h2>
+                <h2 class="h5 mb-0">{{ user.firstName }} {{ user.lastName }}</h2>
             </div>
             <div class="card-body">
                 <p><strong>Email:</strong> {{ user.email }}</p>
                 <p><strong>Téléphone:</strong> {{ user.phone ?: '—' }}</p>
-                <p><strong>Campus:</strong> {{ user.campus ?: '—' }}</p>
+                <p><strong>Campus:</strong> {{ user.campus.campusName ?: '—' }}</p>
                 <p><strong>Rôle:</strong>
-                    {% if user.role == 'admin' %}
+                    {% if 'ROLE_ADMIN' in user.roles %}
                         <span class="badge bg-danger">Admin</span>
-                    {% elseif user.role == 'guest' %}
-                        <span class="badge bg-secondary">Invité</span>
+                    {% elseif 'ROLE_USER' in user.roles %}
+                        <span class="badge bg-secondary">Utilisateur</span>
                     {% else %}
-                        <span class="badge bg-primary">{{ user.role }}</span>
+                        <span class="badge bg-primary">Utilisateur</span>
                     {% endif %}
                 </p>
-                <p><strong>Activité:</strong> {{ user.activity ?: '—' }}</p>
-                <p><strong>Inscription:</strong> {{ user.registrationDate ? user.registrationDate|date('d/m/Y') : '—' }}</p>
+{#                <p><strong>Activité:</strong> {{ user.activity ?: '—' }}</p>#}
+{#                <p><strong>Inscription:</strong> {{ user.registrationDate ? user.registrationDate|date('d/m/Y') : '—' }}</p>#}
             </div>
             <div class="card-footer text-end">
-                <a href="{{ path('user_list') }}" class="btn btn-secondary">Retour à la liste</a>
+                <a href="{{ path('_list') }}" class="btn btn-secondary">Retour à la liste</a>
             </div>
         </div>
     </div>
