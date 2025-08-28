@@ -18,9 +18,8 @@ class SortieType extends AbstractType
             ->add('registration_deadline')
             ->add('max_registrations')
             ->add('description')
-            ->add('event_state')
             ->add('photo_url')
-            ->add('organizer')
+            ->add('organisator')
             ->add('place')
             ->add('state')
         ;

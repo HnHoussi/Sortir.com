@@ -66,11 +66,11 @@ final class SortieController extends AbstractController
     public function detail(Sortie $sortie): Response
     {
 
-        $isOrganizer = $this->getUser() === $sortie->getOrganisator();
+        $isOrganisator = $this->getUser() === $sortie->getOrganisator();
 
         return $this->render('sortie/detail.html.twig', [
             'sortie' => $sortie,
-            'is_organizer' => $isOrganizer,
+            'is_organisator' => $isOrganisator,
         ]);
     }
 

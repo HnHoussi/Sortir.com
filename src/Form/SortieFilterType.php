@@ -40,7 +40,7 @@ class SortieFilterType extends AbstractType
                 'placeholder' => 'Tous les états',
                 'required' => false,
             ])
-            ->add('organizer', CheckboxType::class, [
+            ->add('organisator', CheckboxType::class, [
                 'label' => 'Je suis l’organisateur',
                 'required' => false,
             ])

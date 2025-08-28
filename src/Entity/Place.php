@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\PlaceRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PlaceRepository::class)]
@@ -24,6 +25,9 @@ class Place
 
     #[ORM\Column(nullable: true)]
     private ?float $longitude = null;
+
+    #[ORM\OneToMany(targetEntity: Sortie::class, mappedBy: 'place')]
+    private Collection $sorties;
 
     #[ORM\ManyToOne(inversedBy: 'places')]
     #[ORM\JoinColumn(nullable: false)]
@@ -93,4 +97,10 @@ class Place
 
         return $this;
     }
+
+    public function __toString(): string
+    {
+        return $this->getPlaceName() ?? 'Unknown place';
+    }
+
 }
