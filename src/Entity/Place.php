@@ -31,7 +31,7 @@ class Place
 
     #[ORM\ManyToOne(inversedBy: 'places')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?City $City = null;
+    private ?City $city = null;
 
     public function getId(): ?int
     {
@@ -88,12 +88,12 @@ class Place
 
     public function getCity(): ?City
     {
-        return $this->City;
+        return $this->city;
     }
 
-    public function setCity(?City $City): static
+    public function setCity(?City $city): static
     {
-        $this->City = $City;
+        $this->city = $city;
 
         return $this;
     }
