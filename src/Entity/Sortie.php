@@ -34,17 +34,18 @@ class Sortie
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $event_state = null;
+//    #[ORM\Column(nullable: true)]
+//    private ?int $event_state = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo_url = null;
 
-    #[ORM\Column]
-    private ?int $organizer = null;
+//    #[ORM\Column]
+//    private ?int $organizer = null;
 
-    #[ORM\Column]
-    private ?int $place = null;
+    #[ORM\ManyToOne(inversedBy: 'sorties')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Place $place = null;
 
     #[ORM\Column]
     private ?int $state = null;
@@ -150,17 +151,17 @@ class Sortie
         return $this;
     }
 
-    public function getEventState(): ?int
-    {
-        return $this->event_state;
-    }
+//    public function getEventState(): ?int
+//    {
+//        return $this->event_state;
+//    }
 
-    public function setEventState(?int $event_state): static
-    {
-        $this->event_state = $event_state;
-
-        return $this;
-    }
+//    public function setEventState(?int $event_state): static
+//    {
+//        $this->event_state = $event_state;
+//
+//        return $this;
+//    }
 
     public function getPhotoUrl(): ?string
     {
@@ -174,24 +175,24 @@ class Sortie
         return $this;
     }
 
-    public function getOrganizer(): ?int
-    {
-        return $this->organizer;
-    }
+//    public function getOrganizer(): ?int
+//    {
+//        return $this->organizer;
+//    }
 
-    public function setOrganizer(int $organizer): static
-    {
-        $this->organizer = $organizer;
+//    public function setOrganizer(int $organizer): static
+//    {
+//        $this->organizer = $organizer;
+//
+//        return $this;
+//    }
 
-        return $this;
-    }
-
-    public function getPlace(): ?int
+    public function getPlace(): ?Place
     {
         return $this->place;
     }
 
-    public function setPlace(int $place): static
+    public function setPlace(?Place $place): self
     {
         $this->place = $place;
 

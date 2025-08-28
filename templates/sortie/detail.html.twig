@@ -4,7 +4,7 @@
 
 {% block body %}
     <div class="container mt-4">
-        <h1 class="text-center mb-4">Afficher une sortie</h1>
+        <h1 class="text-center mb-4">Détails de sortie</h1>
 
         <div class="row">
             <div class="col-md-6">
@@ -17,12 +17,12 @@
             </div>
 
             <div class="col-md-6">
-                <p><strong>Ville organisatrice :</strong> {{ sortie.place.city.nom }}</p>
-                <p><strong>Lieu :</strong> {{ sortie.place.nom }}</p>
-                <p><strong>Rue :</strong> {{ sortie.place.rue }}</p>
-                <p><strong>Code postal :</strong> {{ sortie.place.city.codePostal }}</p>
-                <p><strong>Latitude :</strong> {{ sortie.place.latitude }}</p>
-                <p><strong>Longitude :</strong> {{ sortie.place.longitude }}</p>
+                <p><strong>Ville organisatrice :</strong> {{ sortie.place.placeName }}</p>
+                <p><strong>Lieu :</strong> {{ sortie.place }}</p>
+                <p><strong>Rue :</strong> {{ sortie.place.street }}</p>
+                <p><strong>Code postal :</strong> {{ sortie.place }}</p>
+                <p><strong>Latitude :</strong> {{ sortie.place }}</p>
+                <p><strong>Longitude :</strong> {{ sortie.place}}</p>
             </div>
         </div>
 
@@ -41,7 +41,7 @@
                 {% for user in sortie.users %}
                     <tr>
                         <td>{{ user.pseudo }}</td>
-                        <td>{{ user.prenom }} {{ user.nom }}</td>
+                        <td>{{ user.firstName }} {{ user.lastName }}</td>
                     </tr>
                 {% else %}
                     <tr>
