@@ -34,15 +34,29 @@ class Sortie
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+//    #[ORM\Column(nullable: true)]
+//    private ?int $event_state = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo_url = null;
+
+//    #[ORM\Column]
+//    private ?int $organizer = null;
+
+    #[ORM\ManyToOne(inversedBy: 'sorties')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Place $place = null;
+
+    #[ORM\Column]
+    private ?int $state = null;
+
 
     #[ORM\ManyToOne(inversedBy: 'sorties')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Status $status = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $cancellation_reason = null;
+    private ?string $cancellationReason = null;
 
     #[ORM\ManyToOne(inversedBy: 'sortiesOrganisees')]
     #[ORM\JoinColumn(nullable: false)]
@@ -137,6 +151,18 @@ class Sortie
         return $this;
     }
 
+//    public function getEventState(): ?int
+//    {
+//        return $this->event_state;
+//    }
+
+//    public function setEventState(?int $event_state): static
+//    {
+//        $this->event_state = $event_state;
+//
+//        return $this;
+//    }
+
     public function getPhotoUrl(): ?string
     {
         return $this->photo_url;
@@ -148,6 +174,43 @@ class Sortie
 
         return $this;
     }
+
+//    public function getOrganizer(): ?int
+//    {
+//        return $this->organizer;
+//    }
+
+//    public function setOrganizer(int $organizer): static
+//    {
+//        $this->organizer = $organizer;
+//
+//        return $this;
+//    }
+
+    public function getPlace(): ?Place
+    {
+        return $this->place;
+    }
+
+    public function setPlace(?Place $place): self
+    {
+        $this->place = $place;
+
+        return $this;
+    }
+
+    public function getState(): ?int
+    {
+        return $this->state;
+    }
+
+    public function setState(int $state): static
+    {
+        $this->state = $state;
+
+        return $this;
+    }
+
 
     public function getStatus(): ?Status
     {
@@ -163,12 +226,12 @@ class Sortie
 
     public function getCancellationReason(): ?string
     {
-        return $this->cancellation_reason;
+        return $this->cancellationReason;
     }
 
-    public function setCancellationReason(?string $cancellation_reason): static
+    public function setCancellationReason(?string $cancellationReason): static
     {
-        $this->cancellation_reason = $cancellation_reason;
+        $this->cancellationReason = $cancellationReason;
 
         return $this;
     }
