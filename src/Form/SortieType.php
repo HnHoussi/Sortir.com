@@ -71,24 +71,12 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('organisator', null, [
-                'label' => 'Organisateur',
-                'attr' => [
-                    'class' => 'form-control rounded-lg'
-                ]
-            ])
             ->add('place', EntityType::class, [
                 'class' => Place::class,
                 'choice_label' => 'placeName',
                 'required' => false,
                 'placeholder' => 'Sélectionnez un lieu',
                 'label' => 'Lieu',
-                'attr' => [
-                    'class' => 'form-control rounded-lg'
-                ]
-            ])
-            ->add('state', null, [
-                'label' => 'État',
                 'attr' => [
                     'class' => 'form-control rounded-lg'
                 ]

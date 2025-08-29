@@ -39,7 +39,11 @@ final class SortieController extends AbstractController
     }
 
     #[Route('/create', name: '_create')]
-    public function create(EntityManagerInterface $em, Request $request): Response
+    public function create(
+        EntityManagerInterface $em,
+        Request $request,
+        StatusRepository $statusRepository // Injection de dépendance du repository
+    ): Response
     {
         // Logique pour créer une sortie
         $sortie = new Sortie();
@@ -47,10 +51,24 @@ final class SortieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $sortie = $form->getData();
+
+            // 1. Récupérer le statut par défaut (ex: 'Créée')
+            $createdStatus = $statusRepository->findOneBy(['status_label' => 'Créée']);
+
+            if (!$createdStatus) {
+                // Gérer le cas où le statut n'existe pas
+                throw new \Exception('Le statut par défaut "Créée" n\'a pas été trouvé.');
+            }
+
+            // 2. Assigner le statut à la sortie
+            $sortie->setStatus($createdStatus);
+
+            // 3. Assigner l'organisateur (l'utilisateur courant)
+            /** @var User $user */
+            $user = $this->getUser();
+            $sortie->setOrganisator($user);
 
             $em->persist($sortie);
-
             $em->flush();
 
             $this->addFlash('success', 'Sortie créé avec succès !');
