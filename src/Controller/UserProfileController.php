@@ -37,7 +37,9 @@ final class UserProfileController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        $edit_profil_form = $this->createForm(UserType::class, $user);
+        $edit_profil_form = $this->createForm(UserType::class, $user, [
+            'is_admin' => false,
+        ]);
         $edit_profil_form->handleRequest($request);
 
         if ($edit_profil_form->isSubmitted() && $edit_profil_form->isValid()) {
@@ -66,7 +68,7 @@ final class UserProfileController extends AbstractController
         }
 
         return $this->render('user_profile/edit-profile.html.twig', [
-            'edit_profil_form' => $edit_profil_form->createView(),
+            'edit_profil_form' => $edit_profil_form,
             'user' => $user,
         ]);
     }
