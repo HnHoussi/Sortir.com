@@ -9,7 +9,30 @@
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div>
-                    {{ form(sortie_form) }}
+                    {{ form_start(sortie_form) }}
+
+                    {{ form_row(sortie_form.name) }}
+                    {{ form_row(sortie_form.start_datetime) }}
+                    {{ form_row(sortie_form.duration) }}
+                    {{ form_row(sortie_form.registration_deadline) }}
+                    {{ form_row(sortie_form.max_registrations) }}
+                    {{ form_row(sortie_form.description) }}
+                    {{ form_row(sortie_form.photo_url) }}
+                    {{ form_row(sortie_form.organisator) }}
+                    {{ form_row(sortie_form.state) }}
+
+                    <div class="mb-3">
+                        {{ form_label(sortie_form.place) }}
+                        <div class="input-group">
+                            {{ form_widget(sortie_form.place, {'attr': {'class': 'form-select'}}) }}
+                            <a href="{{ path('app_place_new') }}" class="btn btn-primary" style="margin-left: 10px;">
+                                Ajouter un lieu
+                            </a>
+                        </div>
+                        {{ form_errors(sortie_form.place) }}
+                    </div>
+
+                    {{ form_end(sortie_form) }}
                 </div>
             </div>
         </div>
