@@ -1,0 +1,12 @@
+<p>Bonjour {{ user.firstName }},</p>
+
+<p>Nous vous confirmons votre désinscription de la sortie : <strong>{{ sortie.name }}</strong>.</p>
+<p>
+    Détails de la sortie :<br>
+    Date : {{ sortie.startDatetime|date('d/m/Y H:i') }}<br>
+    Lieu : {{ sortie.place.placeName }}
+</p>
+
+<p>Si vous changez d'avis, vous pouvez vous réinscrire tant que la date limite n'est pas dépassée.</p>
+
+<p>L'équipe Sortir.com</p>

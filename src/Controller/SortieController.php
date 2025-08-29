@@ -10,6 +10,7 @@ use App\Form\SortieFilterType;
 use App\Form\SortieType;
 use App\Repository\SortieRepository;
 use App\Repository\StatusRepository;
+use App\Service\MailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
@@ -21,12 +22,15 @@ final class SortieController extends AbstractController
 {
 //    SLB : modif de la fonction pour que l'affichage par défaut, sans utiliser de filtre, exclue les sorties archivées de la vue
     #[Route('', name: '_list')]
-    public function list(SortieRepository $sortieRepository, Request $request, User $user): Response
+    public function list(SortieRepository $sortieRepository, Request $request): Response
     {
         $form = $this->createForm(SortieFilterType::class);
         $form->handleRequest($request);
 
-        $filters = $form->getData();
+        // Modif SLB pour les conditions d'inscription ensuite (reconnaissance du user)
+        $filters = $form->getData() ?? [];
+        $user = $this->getUser();
+
         $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
 
         return $this->render('sortie/list.html.twig', [
@@ -63,13 +67,105 @@ final class SortieController extends AbstractController
     #[Route('/{id}', name: '_detail')]
     public function detail(Sortie $sortie): Response
     {
-
-        $isOrganisator = $this->getUser() === $sortie->getOrganisator();
+        $user = $this->getUser();
+        $isOrganisator = $user && $user->getId() === $sortie->getOrganisator()->getId();
+        $isRegistered = $user && $sortie->getUsers()->contains($user);
+        $isFull = count($sortie->getUsers()) >= $sortie->getMaxRegistrations();
+        $isRegistrationOpen = $sortie->getStatus()->getStatusLabel() === 'Ouverte' && new \DateTime() < $sortie->getRegistrationDeadline();
 
         return $this->render('sortie/detail.html.twig', [
             'sortie' => $sortie,
             'is_organisator' => $isOrganisator,
+            'is_registered' => $isRegistered,
+            'is_full' => $isFull,
+            'is_registration_open' => $isRegistrationOpen,
         ]);
+    }
+    #[Route('/{id}/register', name: '_register')]
+    public function register(Sortie $sortie, EntityManagerInterface $em, MailService $mailService): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour vous inscrire.');
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        $erreur = $this->registerConditionsVerified($sortie, $user);
+
+        if ($erreur) {
+            $this->addFlash('error', $erreur);
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        $sortie->addUser($user);
+        $em->flush();
+
+        $mailService->sendInscriptionMail($user, $sortie);
+
+        $this->addFlash('success', 'Inscription réussie !');
+        return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+    }
+
+    private function registerConditionsVerified(Sortie $sortie, User $user): ?string
+    {
+        $now = new \DateTime();
+
+        // Vérification de l'organisateur
+        if ($sortie->getOrganisator() === $user) {
+            return 'En tant qu\'organisateur, vous ne pouvez pas vous inscrire à votre propre sortie.';
+        }
+
+        if ($now > $sortie->getRegistrationDeadline()) {
+            return 'La date limite d\'inscription est dépassée.';
+        }
+
+        if ($sortie->getUsers()->contains($user)) {
+            return 'Vous êtes déjà inscrit à cette sortie.';
+        }
+
+        if ($sortie->getStatus()->getStatusLabel() !== 'Ouverte') {
+            return 'Cette sortie n\'est pas ouverte aux inscriptions.';
+        }
+
+        if (count($sortie->getUsers()) >= $sortie->getMaxRegistrations()) {
+            return 'La sortie est complète.';
+        }
+
+        return null;
+    }
+
+    #[Route('/{id}/unregister', name: '_unregister')]
+    public function unregister(Sortie $sortie, EntityManagerInterface $em, MailService $mailService): Response
+    {
+        $user = $this->getUser();
+        $now = new \DateTime();
+
+        if (!$user) {
+            $this->addFlash('error', 'Vous devez être connecté pour vous désinscrire.');
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        if ($sortie->getStartDatetime() < $now) {
+            $this->addFlash('error', 'Impossible de se désinscrire d\'une sortie qui a déjà eu lieu.');
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        if ($sortie->getStatus()->getStatusLabel() === 'Annulée') {
+            $this->addFlash('error', 'Impossible de se désinscrire d\'une sortie qui a été annulée.');
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        if (!$sortie->getUsers()->contains($user)) {
+            $this->addFlash('warning', 'Vous n\'êtes pas inscrit à cette sortie.');
+        } else {
+            $sortie->removeUser($user);
+            $em->flush();
+            $mailService->sendUnregisterMail($user, $sortie);
+            $this->addFlash('success', 'Vous avez été désinscrit de la sortie.');
+        }
+
+        return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
     }
 
     #[Route('/{id}/cancel', name: '_cancel')]

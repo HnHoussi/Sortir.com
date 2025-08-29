@@ -1,0 +1,13 @@
+<p>Bonjour {{ user.firstName }},</p>
+
+<p>Nous vous confirmons votre inscription à la sortie : <strong>{{ sortie.name }}</strong>.</p>
+<p>
+    Détails de la sortie :<br>
+    Date : {{ sortie.startDatetime|date('d/m/Y H:i') }}<br>
+    Lieu : {{ sortie.place.placeName }}<br>
+    Organisateur : {{ sortie.organisator.pseudo }}
+</p>
+
+<p>Nous espérons que vous passerez un bon moment !</p>
+
+<p>L'équipe Sortir.com</p>
