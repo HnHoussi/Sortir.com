@@ -32,17 +32,21 @@ class UserType extends AbstractType
             $builder
                 ->add('roles', ChoiceType::class, [
                     'choices' => [
-                        'Utilisateur' => 'ROLE_USER',
+                        'Invité' => 'ROLE_USER',
                         'Admin' => 'ROLE_ADMIN',
                     ],
-                    'multiple' => true,
+                    'multiple' => false,
                     'expanded' => true,
-                    'label' => 'Rôles',
+                    'mapped' => false,
+                    'label' => 'Rôle',
                 ])
-                ->add('plainPassword', PasswordType::class, [
+                ->add('plainPassword', RepeatedType::class, [
+                    'type' => PasswordType::class,
                     'mapped' => false,
                     'required' => $options['require_password'], // true for create, false for edit
-                    'label' => 'Mot de passe' ,
+                    'first_options' => ['label' => 'Mot de passe'],
+                    'second_options' => ['label' => 'Confirmer le mot de passe'],
+                    'invalid_message' => 'Les mots de passe doivent correspondre.',
                 ]);
         }else {
             $builder

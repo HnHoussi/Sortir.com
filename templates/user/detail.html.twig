@@ -4,35 +4,44 @@
 
 {% block body %}
     <div class="container mt-4">
-        <h1 class="mb-4 text-center">👤 Détail de l'utilisateur</h1>
+        <h1 class="text-center mb-4">👤 Détail de l'utilisateur</h1>
 
         <div class="row justify-content-center">
-            <div class="col-md-6">
+            <div class="col-md-6 col-lg-5">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white text-center">
                         <h2 class="h5 mb-0">{{ user.firstName }} {{ user.lastName }}</h2>
                     </div>
-                    <div class="card-body text-center">
-                        <p><strong>Email :</strong> {{ user.email }}</p>
-                        <p><strong>Pseudo :</strong> {{ user.pseudo }}</p>
-                        <p><strong>Téléphone :</strong> {{ user.phone ?: '—' }}</p>
-                        <p><strong>Campus :</strong> {{ user.campus ? user.campus.campusName : '—' }}</p>
-                        <p><strong>Rôle :</strong>
-                            {% if 'ROLE_ADMIN' in user.roles %}
-                                <span class="badge bg-danger">Admin</span>
-                            {% elseif 'ROLE_USER' in user.roles %}
-                                <span class="badge bg-secondary">Utilisateur</span>
-                            {% else %}
-                                <span class="badge bg-primary">Autre</span>
-                            {% endif %}
-                        </p>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-5 text-end">Email :</dt>
+                            <dd class="col-7 text-start">{{ user.email }}</dd>
+
+                            <dt class="col-5 text-end">Pseudo :</dt>
+                            <dd class="col-7 text-start">{{ user.pseudo }}</dd>
+
+                            <dt class="col-5 text-end">Téléphone :</dt>
+                            <dd class="col-7 text-start">{{ user.phone ?: '—' }}</dd>
+
+                            <dt class="col-5 text-end">Campus :</dt>
+                            <dd class="col-7 text-start">{{ user.campus ? user.campus.campusName : '—' }}</dd>
+
+                            <dt class="col-5 text-end">Rôle :</dt>
+                            <dd class="col-7 text-start">
+                                {% if 'ROLE_ADMIN' in user.roles %}
+                                    <span class="badge bg-danger">Admin</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Invité</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
                     </div>
-                    <div class="card-footer text-center d-flex justify-content-center gap-2">
-                        <a href="{{ path('_list') }}" class="btn btn-secondary">
-                            Retour à la liste
-                        </a>
+                    <div class="card-footer d-flex justify-content-center gap-2">
                         <a href="{{ path('_admin_edit', {'id': user.id}) }}" class="btn btn-warning">
                             Modifier
+                        </a>
+                        <a href="{{ path('_list') }}" class="btn btn-secondary">
+                            Retour à la liste
                         </a>
                     </div>
                 </div>

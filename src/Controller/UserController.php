@@ -54,6 +54,7 @@ final class UserController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $user = new User();
+
         $form = $this->createForm(UserType::class, $user, [
             'require_password' => true,
             'is_admin' => true,
@@ -63,13 +64,13 @@ final class UserController extends AbstractController
 
         if($form->isSubmitted() && $form->isValid()) {
 
-            $roles = $form->get('roles')->getData() ?? 'ROLE_USER';
+            $roles = $form->get('roles')->getData();
             $user->setRoles([$roles]);
 
             //password
-            $plain = $form->get('plainPassword')->getData();
-            $hashed = $passwordHasher->hashPassword($user, $plain);
-            $user->setPassword($hashed);
+            $plainPassword = $form->get('plainPassword')->getData();
+            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+            $user->setPassword($hashedPassword);
 
             $em->persist($user);
             $em->flush();
