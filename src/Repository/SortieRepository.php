@@ -86,6 +86,12 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('user', $user);
         }
 
+        if (!empty($filters['place'])) {
+            $qb->andWhere('p.id = :place_id')
+                ->setParameter('place_id', $filters['place']->getId());
+        }
+
+
         return $qb->orderBy('s.start_datetime', 'ASC')
             ->getQuery()
             ->getResult();
