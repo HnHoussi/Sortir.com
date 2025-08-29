@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Sortie;
+use App\Entity\Status;
 use App\Entity\User;
 use App\Form\SortieCancellationType;
 use App\Form\SortieFilterType;
@@ -18,19 +19,16 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/sortie', name: 'sortie')]
 final class SortieController extends AbstractController
 {
+//    SLB : modif de la fonction pour que l'affichage par défaut, sans utiliser de filtre, exclue les sorties archivées de la vue
     #[Route('', name: '_list')]
     public function list(SortieRepository $sortieRepository, Request $request, User $user): Response
     {
         $form = $this->createForm(SortieFilterType::class);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $filters = $form->getData();
-            $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
-        }
-        else {
-            $sorties = $sortieRepository->findAll();
-        }
+        $filters = $form->getData();
+        $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
+
         return $this->render('sortie/list.html.twig', [
             'sorties' => $sorties,
             'form' => $form,
@@ -111,6 +109,28 @@ final class SortieController extends AbstractController
             'form' => $form->createView(),
         ]);
 
+    }
+
+    #[Route('/archive', name: 'sortie_archive', methods: ['GET'])]
+    public function archiveSorties(SortieRepository $sortieRepository, EntityManagerInterface $entityManager): Response
+    {
+        $dateLimit = new \DateTime('-1 month');
+
+        $sortiesToArchive = $sortieRepository->findOldSortiesForArchiving($dateLimit);
+
+        $archivedStatus = $entityManager->getRepository(Status::class)->findOneBy(['code' => 'Archivée']);
+
+        if (!$archivedStatus) {
+            return new Response('Statut "Archivée" non trouvé. Impossible d\'archiver.', Response::HTTP_NOT_FOUND);
+        }
+
+        foreach ($sortiesToArchive as $sortie) {
+            $sortie->setStatus($archivedStatus);
+        }
+
+        $entityManager->flush();
+
+        return new Response(sprintf('Archivé %d sorties.', count($sortiesToArchive)));
     }
 
 }
