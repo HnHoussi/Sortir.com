@@ -64,18 +64,18 @@ final class SortieController extends AbstractController
     public function detail(Sortie $sortie): Response
     {
 
-        $isOrganisator = $this->getUser() === $sortie->getOrganisator();
+        $isOrganizer  = $this->getUser() === $sortie->getOrganizer();
 
         return $this->render('sortie/detail.html.twig', [
             'sortie' => $sortie,
-            'is_organisator' => $isOrganisator,
+            'is_organizer' => $isOrganizer,
         ]);
     }
 
     #[Route('/{id}/cancel', name: '_cancel')]
     public function cancel (Sortie $sortie, Request $request, EntityManagerInterface $em, StatusRepository $statusRepository): Response
     {
-        if ($sortie->getOrganisator() !== $this->getUser()) {
+        if ($sortie->getOrganizer() !== $this->getUser()) {
             throw new AccessDeniedException('Vous n\'êtes pas l\'organisateur de cette sortie.');
         }
 

@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class UserProfileController extends AbstractController
 {
-    #[Route('/mon-profile', name: 'app_user_profile')]
+    #[Route('/my-profile', name: 'user_profile_details')]
     public function showConnectedUserProfile(): Response
     {
         $user = $this->getUser();
@@ -28,7 +28,7 @@ final class UserProfileController extends AbstractController
         ]);
     }
 
-    #[Route('/mon-profile/edit', name: 'app_user_profile_edit')]
+    #[Route('/my-profile/edit', name: 'user_profile_edit')]
     public function editProfile(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
     {
         /** @var User $user */
@@ -60,16 +60,18 @@ final class UserProfileController extends AbstractController
                 }
             }
 
-            // Save the other user info regardless of password
-            $entityManager->flush();
-            $this->addFlash('success', 'Profil mis à jour avec succès !');
 
-            return $this->redirectToRoute('app_user_profile');
+            if ($edit_profil_form->isValid() && count($edit_profil_form->getErrors(true)) === 0) {
+                $entityManager->flush();
+                $this->addFlash('success', 'Profil mis à jour avec succès !');
+                return $this->redirectToRoute('user_profile_details');
+            }
+
         }
 
         return $this->render('user_profile/edit-profile.html.twig', [
             'edit_profil_form' => $edit_profil_form,
-            'user' => $user,
+            'editedUser' => $user,
         ]);
     }
 }

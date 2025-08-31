@@ -16,8 +16,8 @@ use Symfony\Component\Routing\Attribute\Route;
 final class UserController extends AbstractController
 {
     // List all users
-    #[Route('/', name: '_list')]
-    public function _list(UserRepository $userRepository): Response
+    #[Route('/', name: 'admin_users_list')]
+    public function showUsersList(UserRepository $userRepository): Response
     {
 
         $currentUser = $this->getUser();
@@ -34,13 +34,13 @@ final class UserController extends AbstractController
     }
 
     // Details of a chosen user
-    #[Route('/{id}', name: '_detail', requirements: ['id' => '\d+'])]
+    #[Route('user/{id}', name: 'user_detail', requirements: ['id' => '\d+'])]
     public function detailUser(int $id, UserRepository $userRepository): Response
     {
 
         $user = $userRepository->find($id);
         if (!$user) {
-            throw $this->createNotFoundException('User non trouvé');
+            throw $this->createNotFoundException('Utilisateur non trouvé');
         }
         return $this->render('/user/detail.html.twig', [
             'user' => $user,
@@ -48,8 +48,8 @@ final class UserController extends AbstractController
     }
 
     //Add user manually by admin
-    #[Route('/admin/add', name: '_add')]
-    public function addUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    #[Route('/admin/user/add', name: 'admin_user_add')]
+    public function adminAddUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -76,7 +76,7 @@ final class UserController extends AbstractController
             $em->flush();
 
             $this->addFlash('success', 'Utilisateur ajouté avec succès');
-            return $this->redirectToRoute('_list');
+            return $this->redirectToRoute('admin_users_list');
         }
 
         return $this->render('/user/add-user.html.twig', [
@@ -85,7 +85,7 @@ final class UserController extends AbstractController
     }
 
     // edit existing user
-    #[Route('/admin/user/{id}/edit', name: '_admin_edit', requirements: ['id' => '\d+'])]
+    #[Route('/admin/user/{id}/edit', name: 'admin_edit_user', requirements: ['id' => '\d+'])]
     public function adminEditUser(
         int $id,
         Request $request,
@@ -104,12 +104,12 @@ final class UserController extends AbstractController
         $currentUser = $this->getUser();
         if (in_array('ROLE_ADMIN', $user->getRoles(), true) && $user !== $currentUser) {
             $this->addFlash('danger', 'Vous ne pouvez pas modifier le profil d\'un autre administrateur.');
-            return $this->redirectToRoute('_list');
+            return $this->redirectToRoute('admin_users_list');
         }
 
         $edit_profil_form = $this->createForm(UserType::class, $user, [
             'is_admin' => true,
-            'require_password' => false, // édition : mot de passe optionnel
+            'require_password' => false,
         ]);
 
         $edit_profil_form->handleRequest($request);
@@ -126,12 +126,12 @@ final class UserController extends AbstractController
 
             $em->flush();
             $this->addFlash('success', 'Utilisateur mis à jour.');
-            return $this->redirectToRoute('_list');
+            return $this->redirectToRoute('admin_users_list');
         }
 
         return $this->render('user_profile/edit-profile.html.twig', [
             'edit_profil_form' => $edit_profil_form,
-            'user' => $user,
+            'editedUser' => $user,
         ]);
     }
 

@@ -20,35 +20,26 @@ class Sortie
     private ?string $name = null;
 
     #[ORM\Column]
-    private ?\DateTime $start_datetime = null;
+    private ?\DateTime $startDatetime = null;
 
     #[ORM\Column]
     private ?int $duration = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTime $registration_deadline = null;
+    private ?\DateTime $registrationDeadline = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $max_registrations = null;
+    private ?int $maxRegistrations = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-//    #[ORM\Column(nullable: true)]
-//    private ?int $event_state = null;
-
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $photo_url = null;
-
-//    #[ORM\Column]
-//    private ?int $organizer = null;
+    private ?string $photoUrl = null;
 
     #[ORM\ManyToOne(inversedBy: 'sorties')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Place $place = null;
-
-    #[ORM\Column]
-    private ?int $state = null;
 
 
     #[ORM\ManyToOne(inversedBy: 'sorties')]
@@ -60,7 +51,7 @@ class Sortie
 
     #[ORM\ManyToOne(inversedBy: 'sortiesOrganisees')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $organisator = null;
+    private ?User $organizer = null;
 
     /**
      * @var Collection<int, User>
@@ -93,12 +84,12 @@ class Sortie
 
     public function getStartDatetime(): ?\DateTime
     {
-        return $this->start_datetime;
+        return $this->startDatetime;
     }
 
-    public function setStartDatetime(\DateTime $start_datetime): static
+    public function setStartDatetime(\DateTime $startDatetime): static
     {
-        $this->start_datetime = $start_datetime;
+        $this->startDatetime = $startDatetime;
 
         return $this;
     }
@@ -117,24 +108,24 @@ class Sortie
 
     public function getRegistrationDeadline(): ?\DateTime
     {
-        return $this->registration_deadline;
+        return $this->registrationDeadline;
     }
 
-    public function setRegistrationDeadline(?\DateTime $registration_deadline): static
+    public function setRegistrationDeadline(?\DateTime $registrationDeadline): static
     {
-        $this->registration_deadline = $registration_deadline;
+        $this->registrationDeadline = $registrationDeadline;
 
         return $this;
     }
 
     public function getMaxRegistrations(): ?int
     {
-        return $this->max_registrations;
+        return $this->maxRegistrations;
     }
 
-    public function setMaxRegistrations(?int $max_registrations): static
+    public function setMaxRegistrations(?int $maxRegistrations): static
     {
-        $this->max_registrations = $max_registrations;
+        $this->maxRegistrations = $maxRegistrations;
 
         return $this;
     }
@@ -151,41 +142,18 @@ class Sortie
         return $this;
     }
 
-//    public function getEventState(): ?int
-//    {
-//        return $this->event_state;
-//    }
-
-//    public function setEventState(?int $event_state): static
-//    {
-//        $this->event_state = $event_state;
-//
-//        return $this;
-//    }
 
     public function getPhotoUrl(): ?string
     {
-        return $this->photo_url;
+        return $this->photoUrl;
     }
 
-    public function setPhotoUrl(?string $photo_url): static
+    public function setPhotoUrl(?string $photoUrl): static
     {
-        $this->photo_url = $photo_url;
+        $this->photoUrl = $photoUrl;
 
         return $this;
     }
-
-//    public function getOrganizer(): ?int
-//    {
-//        return $this->organizer;
-//    }
-
-//    public function setOrganizer(int $organizer): static
-//    {
-//        $this->organizer = $organizer;
-//
-//        return $this;
-//    }
 
     public function getPlace(): ?Place
     {
@@ -198,19 +166,6 @@ class Sortie
 
         return $this;
     }
-
-    public function getState(): ?int
-    {
-        return $this->state;
-    }
-
-    public function setState(int $state): static
-    {
-        $this->state = $state;
-
-        return $this;
-    }
-
 
     public function getStatus(): ?Status
     {
@@ -236,14 +191,14 @@ class Sortie
         return $this;
     }
 
-    public function getOrganisator(): ?User
+    public function getOrganizer (): ?User
     {
-        return $this->organisator;
+        return $this->organizer;
     }
 
-    public function setOrganisator(?User $organisator): static
+    public function setOrganizer(?User $organizer): static
     {
-        $this->organisator = $organisator;
+        $this->organizer = $organizer;
 
         return $this;
     }

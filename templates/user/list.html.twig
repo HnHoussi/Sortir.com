@@ -6,7 +6,7 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>👥 Utilisateurs inscrits</h1>
-            <a href="{{ path('_add') }}" class="btn btn-success">
+            <a href="{{ path('admin_user_add') }}" class="btn btn-success">
                 ➕ Ajouter un utilisateur
             </a>
         </div>
@@ -37,10 +37,10 @@
                             {% endif %}
                         </td>
                         <td class="d-flex gap-2 justify-content-center">
-                            <a href="{{ path('_detail', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">
+                            <a href="{{ path('user_detail', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">
                                 Détails
                             </a>
-                            <a href="{{ path('_admin_edit', {'id': user.id}) }}" class="btn btn-sm btn-outline-warning">
+                            <a href="{{ path('admin_edit_user', {'id': user.id}) }}" class="btn btn-sm btn-outline-warning">
                                 Modifier
                             </a>
                             <a href="#" class="btn btn-sm btn-outline-danger">

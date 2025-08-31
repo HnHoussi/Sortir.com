@@ -48,7 +48,7 @@ class SortieRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('s')
             ->leftJoin('s.place', 'p')
             ->leftJoin('p.city', 'c')
-            ->leftJoin('s.organisator', 'o')
+            ->leftJoin('s.organizer', 'o')
             ->leftJoin('s.status', 'st')
             ->addSelect('p', 'c', 'o', 'st');
 
@@ -76,8 +76,8 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('status_id', $filters['statut']->getId());
         }
 
-        if (!empty($filters['organisator'])) {
-            $qb->andWhere('s.organisator = :user')
+        if (!empty($filters['organizer'])) {
+            $qb->andWhere('s.organizer = :user')
                 ->setParameter('user', $user);
         }
 
@@ -86,7 +86,7 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('user', $user);
         }
 
-        return $qb->orderBy('s.start_datetime', 'ASC')
+        return $qb->orderBy('s.startDatetime', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -96,7 +96,7 @@ class SortieRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('s')
             ->leftJoin('s.status', 'st')
             ->andWhere('st.status_label IN (:statusCodes)')
-            ->andWhere('s.start_datetime < :dateLimit')
+            ->andWhere('s.startDatetime < :dateLimit')
             ->setParameter('statusCodes', ['Terminée', 'Annulée'])
             ->setParameter('dateLimit', $dateLimit)
             ->getQuery()

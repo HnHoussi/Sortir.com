@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Sortie;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -13,15 +14,27 @@ class SortieType extends AbstractType
     {
         $builder
             ->add('name')
-            ->add('start_datetime')
+            ->add('startDatetime')
             ->add('duration')
             ->add('registration_deadline')
             ->add('max_registrations')
             ->add('description')
             ->add('photo_url')
-            ->add('organisator')
+            ->add('organizer')
             ->add('place')
-            ->add('state')
+            ->add('status', ChoiceType::class, [
+                'choices' => [
+                    'Créée'      => 'Créée',
+                    'Ouverte'    => 'Ouverte',
+                    'Fermée'     => 'Fermée',
+                    'En cours'   => 'En cours',
+                    'Terminée'   => 'Terminée',
+                    'Annulée'    => 'Annulée',
+                    'Archivée'   => 'Archivée',
+                ],
+                'label' => 'Statut',
+            ])
+
         ;
     }
 

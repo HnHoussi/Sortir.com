@@ -20,7 +20,7 @@ class UserType extends AbstractType
             ->add('firstName', null, ['label' => 'Prénom',])
             ->add('lastName', null, ['label' => 'Nom',])
             ->add('pseudo', null, ['label' => 'Pseudo',])
-            ->add('phone', null, ['label' => 'Téléphone',])
+            ->add('phone', null, ['label' => 'Téléphone', 'required' => false,])
             ->add('email', null, ['label' => 'Adresse e-mail',])
             ->add('campus', EntityType::class, [
                 'class' => Campus::class,
