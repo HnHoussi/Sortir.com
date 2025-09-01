@@ -59,6 +59,10 @@ class Sortie
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'sortiesInscrit')]
     private Collection $users;
 
+    #[ORM\ManyToOne(inversedBy: 'sorties')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Campus $campus = null;
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -199,6 +203,18 @@ class Sortie
     public function setOrganizer(?User $organizer): static
     {
         $this->organizer = $organizer;
+
+        return $this;
+    }
+
+    public function getCampus(): ?Campus
+    {
+        return $this->campus;
+    }
+
+    public function setCampus(?Campus $campus): static
+    {
+        $this->campus = $campus;
 
         return $this;
     }

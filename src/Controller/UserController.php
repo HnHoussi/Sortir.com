@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use App\Service\AnonymizerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,7 +57,7 @@ final class UserController extends AbstractController
         $user = new User();
 
         $form = $this->createForm(UserType::class, $user, [
-            'require_password' => true,
+            'is_edit' => false,
             'is_admin' => true,
         ]);
 
@@ -90,17 +91,16 @@ final class UserController extends AbstractController
         int $id,
         Request $request,
         UserRepository $userRepository,
-        EntityManagerInterface $em,
-        UserPasswordHasherInterface $passwordHasher
-    ): Response
-    {
-
+        EntityManagerInterface $em
+    ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $user = $userRepository->find($id);
-        if (!$user) { throw $this->createNotFoundException('User non trouvé'); }
+        if (!$user) {
+            throw $this->createNotFoundException('User non trouvé');
+        }
 
-        // Block editing another admin
+        // Block editing another admin (unless it’s yourself)
         $currentUser = $this->getUser();
         if (in_array('ROLE_ADMIN', $user->getRoles(), true) && $user !== $currentUser) {
             $this->addFlash('danger', 'Vous ne pouvez pas modifier le profil d\'un autre administrateur.');
@@ -109,19 +109,16 @@ final class UserController extends AbstractController
 
         $edit_profil_form = $this->createForm(UserType::class, $user, [
             'is_admin' => true,
-            'require_password' => false,
+            'is_edit' => true, // editing existing user → no password field
         ]);
 
         $edit_profil_form->handleRequest($request);
+
         if ($edit_profil_form->isSubmitted() && $edit_profil_form->isValid()) {
             // roles
-            $roles = $edit_profil_form->get('roles')->getData() ?: ['ROLE_USER'];
-            $user->setRoles($roles);
-
-            // si admin a renseigné un nouveau mot de passe → le hasher
-            $plain = $edit_profil_form->get('plainPassword')->getData();
-            if ($plain) {
-                $user->setPassword($passwordHasher->hashPassword($user, $plain));
+            if ($edit_profil_form->has('roles')) {
+                $roles = $edit_profil_form->get('roles')->getData();
+                $user->setRoles([$roles]);
             }
 
             $em->flush();
@@ -133,6 +130,24 @@ final class UserController extends AbstractController
             'edit_profil_form' => $edit_profil_form,
             'editedUser' => $user,
         ]);
+    }
+
+
+    #[Route('/admin/user/{id}/delete', name: 'admin_user_delete')]
+    public function adminDeleteUser(User $user, EntityManagerInterface $em, AnonymizerService $anonymizer): Response
+    {
+        $currentUser = $this->getUser();
+
+        // Prevent deleting another admin
+        if (in_array('ROLE_ADMIN', $user->getRoles(), true) && $user !== $currentUser) {
+            $this->addFlash('danger', 'Vous ne pouvez pas supprimer un autre administrateur.');
+            return $this->redirectToRoute('admin_users_list');
+        }
+
+        $anonymizer->anonymize($user);
+        $em->flush();
+        $this->addFlash('success', 'Utilisateur supprimé et anonymisé avec succès.');
+        return $this->redirectToRoute('admin_users_list');
     }
 
 }

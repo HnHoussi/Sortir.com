@@ -1,88 +1,70 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier mon profil{% endblock %}
+{% block title %}Modifier le profil{% endblock %}
 
 {% block body %}
+
     <div class="container mt-5">
         {% if app.user and app.user.id == editedUser.id %}
-            <h1 class="text-center mb-4">Modifier mon profil</h1>
+            <h1 class="text-center mb-4">Modifier le profil</h1>
         {% else %}
             <h1 class="text-center mb-4">Modification de profil : {{ editedUser.firstName ~ ' ' ~ editedUser.lastName }}</h1>
         {% endif %}
 
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
-                <form method="post">
-                    {{ form_row(edit_profil_form._token) }}
+                {{ form_start(edit_profil_form, {'attr': {'novalidate': 'novalidate'}}) }}
 
-                    {# Loop through normal fields except passwords #}
-                    {% for field in edit_profil_form %}
-                        {% if field.vars.name not in ['_token', 'oldPassword', 'newPassword'] %}
+                {% set passwordFields = ['oldPassword', 'newPassword', 'confirmNewPassword'] %}
+                {% set passwordMessageShown = false %}
+
+                {% for child in edit_profil_form %}
+                    {% if child.vars.name not in ['_token'] %}
+
+                        {# Show the message once above the password fields #}
+                        {% if child.vars.name in passwordFields and not passwordMessageShown %}
+                            <p><strong>Si vous souhaitez changer votre mot de passe :</strong></p>
+                            {% set passwordMessageShown = true %}
+                        {% endif %}
+
+                        {% if child.vars.block_prefixes[1] == 'repeated' %}
                             <div class="mb-3">
-                                {{ form_label(field) }}
-                                {{ form_widget(field, {
-                                    'attr': {
-                                        'class': (field.vars.block_prefixes[1] == 'choice' ? 'form-select' : 'form-control') ~ (field.vars.errors|length ? ' is-invalid' : '')
-                                    }
-                                }) }}
-                                {{ form_errors(field) }}
+                                {{ form_label(child.first) }}
+                                {{ form_widget(child.first, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(child.first) }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form_label(child.second) }}
+                                {{ form_widget(child.second, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(child.second) }}
+                            </div>
+                        {% else %}
+                            <div class="mb-3">
+                                {{ form_label(child) }}
+                                {{ form_widget(child, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(child) }}
                             </div>
                         {% endif %}
-                    {% endfor %}
 
-                    {# Password section #}
-                    {% if app.user and app.user.id == editedUser.id %}
-                        <p class="mt-5 fw-bold">Si vous voulez changer le mot de passe :</p>
                     {% endif %}
+                {% endfor %}
 
-                    {% if edit_profil_form.oldPassword is defined %}
-                        <div class="mb-3">
-                            {{ form_label(edit_profil_form.oldPassword) }}
-                            {{ form_widget(edit_profil_form.oldPassword, {
-                                'attr': {
-                                    'class': 'form-control' ~ (edit_profil_form.oldPassword.vars.errors|length ? ' is-invalid' : '')
-                                }
-                            }) }}
-                            {{ form_errors(edit_profil_form.oldPassword) }}
-                        </div>
-                    {% endif %}
 
-                    {% if edit_profil_form.newPassword is defined %}
-                        <div class="mb-3">
-                            {{ form_label(edit_profil_form.newPassword.first) }}
-                            {{ form_widget(edit_profil_form.newPassword.first, {
-                                'attr': {
-                                    'class': 'form-control' ~ (edit_profil_form.newPassword.first.vars.errors|length ? ' is-invalid' : '')
-                                }
-                            }) }}
-                            {{ form_errors(edit_profil_form.newPassword.first) }}
-                        </div>
+                <div class="mb-3 text-center">
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    <a href="{% if app.user.id == editedUser.id %}
+                        {{ path('user_profile_details') }}
+                     {% else %}
+                        {{ path('user_detail', {'id': editedUser.id}) }}
+                    {% endif %}"
+                       class="btn btn-secondary ms-2">
+                        Annuler
+                    </a>
+                </div>
 
-                        <div class="mb-3">
-                            {{ form_label(edit_profil_form.newPassword.second) }}
-                            {{ form_widget(edit_profil_form.newPassword.second, {
-                                'attr': {
-                                    'class': 'form-control' ~ (edit_profil_form.newPassword.second.vars.errors|length ? ' is-invalid' : '')
-                                }
-                            }) }}
-                            {{ form_errors(edit_profil_form.newPassword.second) }}
-                        </div>
-                    {% endif %}
-
-                    <div class="mb-3 text-center">
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                        <a href="{% if app.user.id == editedUser.id %}
-                                {{ path('user_profile_details') }}
-                             {% else %}
-                                {{ path('user_profile_details', {'id': editedUser.id}) }}
-                            {% endif %}"
-                           class="btn btn-secondary ms-2">
-                            Annuler
-                        </a>
-                    </div>
-
-                </form>
+                {{ form_end(edit_profil_form) }}
             </div>
         </div>
     </div>
+
 {% endblock %}

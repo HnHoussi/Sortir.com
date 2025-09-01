@@ -52,7 +52,7 @@ INSERT INTO place (place_name, street, latitude, longitude, city_id) VALUES
                                                                          ('Place des Lices', 'Place des Lices', 48.111, -1.681, 2),
                                                                          ('Jardin de la Retraite', 'Rue de la Retraite', 47.994, -4.102, 3);
 
--- 🔹 Insert users
+-- 🔹 Insert users (make sure campus_id exists!)
 INSERT INTO user (pseudo, last_name, first_name, phone, email, password, is_active, campus_id, roles) VALUES
                                                                                                           ('jdupont', 'Dupont', 'Jean', '0612345678', 'jean.dupont@campus-eni.fr', '$2y$13$4gMcps9IpbRuW5YK.sPGJeUraGulsib0haOQbZneUDVw1cp7Q6ila', 1, 1, '["ROLE_ADMIN"]'),
                                                                                                           ('mlegrand', 'Legrand', 'Marie', '0712345678', 'marie.legrand@campus-eni.fr', '$2y$13$McNoJjQSlwGAZPKsR8qyHe66U9SwdZGJ7b.F3ETT0Rsy6Trv0ep/G', 1, 1, '["ROLE_USER"]'),
@@ -67,20 +67,16 @@ INSERT INTO user (pseudo, last_name, first_name, phone, email, password, is_acti
                                                                                                           ('svernier', 'Vernier', 'Sophie', '0689012345', 'sophie.vernier@campus-eni.fr', '$2y$13$McNoJjQSlwGAZPKsR8qyHe66U9SwdZGJ7b.F3ETT0Rsy6Trv0ep/G', 1, 3, '["ROLE_USER"]'),
                                                                                                           ('thubert', 'Hubert', 'Thomas', '0690123456', 'thomas.hubert@campus-eni.fr', '$2y$13$McNoJjQSlwGAZPKsR8qyHe66U9SwdZGJ7b.F3ETT0Rsy6Trv0ep/G', 1, 2, '["ROLE_ADMIN"]');
 
-
 -- 🔹 Insert sorties
 INSERT INTO sortie (
     name, start_datetime, duration, registration_deadline, max_registrations,
-    description, photo_url, organizer_id, place_id, status_id, cancellation_reason
+    description, photo_url, organizer_id, place_id, status_id, cancellation_reason, campus_id
 ) VALUES
-      ('Visite du Jardin des Plantes', '2025-08-30 14:00:00', 120, '2025-08-28 12:00:00', 10,
-       'Visite guidée des serres.', NULL, 1, 2, 2, NULL),
-      ('Footing au Parc du Thabor', '2025-09-05 18:00:00', 60, '2025-09-04 17:00:00', 5,
-       'Course amicale.', NULL, 2, 3, 2, NULL),
-      ('Pique-nique à Procé', '2025-09-10 12:30:00', 90, '2025-09-08 10:00:00', 8,
-       'Pique-nique convivial.', NULL, 1, 1, 2, NULL),
-      ('Ancien évènement à Rennes', '2025-07-01 10:00:00', 180, '2025-06-28 10:00:00', 15,
-       'Un évènement passé.', NULL, 2, 4, 5, NULL);
+      ('Visite du Jardin des Plantes', '2025-08-30 14:00:00', 120, '2025-08-28 12:00:00', 10, 'Visite guidée des serres.', NULL, 1, 2, 2, NULL, 1),
+      ('Footing au Parc du Thabor', '2025-09-05 18:00:00', 60, '2025-09-04 17:00:00', 5, 'Course amicale.', NULL, 2, 3, 2, NULL, 2),
+      ('Pique-nique à Procé', '2025-09-10 12:30:00', 90, '2025-09-08 10:00:00', 8, 'Pique-nique convivial.', NULL, 1, 1, 2, NULL, 1),
+      ('Ancien évènement à Rennes', '2025-07-01 10:00:00', 180, '2025-06-28 10:00:00', 15, 'Un évènement passé.', NULL, 2, 4, 5, NULL, 2);
+
 
 -- 🔹 Insert sortie_user (inscriptions)
 INSERT INTO sortie_user (sortie_id, user_id) VALUES

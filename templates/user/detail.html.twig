@@ -37,9 +37,16 @@
                         </dl>
                     </div>
                     <div class="card-footer d-flex justify-content-center gap-2">
-                        <a href="{{ path('admin_edit_user', {'id': user.id}) }}" class="btn btn-warning">
-                            Modifier
-                        </a>
+                        {% set canEditDelete = user.isActive and 'ROLE_ADMIN' not in user.roles %}
+
+                        {% if canEditDelete %}
+                            <a href="{{ path('admin_edit_user', {id: user.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                            <a href="{{ path('admin_user_delete', {id: user.id}) }}" class="btn btn-danger btn-sm"
+                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
+                        {% else %}
+                            <button class="btn btn-warning btn-sm" disabled>Modifier</button>
+                            <button class="btn btn-danger btn-sm" disabled>Supprimer</button>
+                        {% endif %}
                         <a href="{{ path('admin_users_list') }}" class="btn btn-secondary">
                             Retour à la liste
                         </a>
