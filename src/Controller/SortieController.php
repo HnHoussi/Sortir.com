@@ -99,7 +99,7 @@ final class SortieController extends AbstractController
 
             $this->addFlash('success', 'Sortie créée avec succès !');
 
-            return $this->redirectToRoute('_detail', ['id' => $sortie->getId()]);
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
         return $this->render('sortie/create.html.twig', [
@@ -222,7 +222,7 @@ final class SortieController extends AbstractController
 
         if ($sortie->getStartDatetime() < new \DateTime()) {
             $this->addFlash('error', 'Impossible d\'annuler une sortie qui a déjà commencé.');
-            return $this->redirectToRoute('_detail', ['id' => $sortie->getId()]);
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
         $form = $this->createForm(SortieCancellationType::class, $sortie);
@@ -233,7 +233,7 @@ final class SortieController extends AbstractController
 
             if (!$canceledStatus) {
                 $this->addFlash('error', 'Le statut "Annulée" n\'a pas été trouvé dans la base de données.');
-                return $this->redirectToRoute('_detail', ['id' => $sortie->getId()]);
+                return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
             }
 
             $sortie->setStatus($canceledStatus);
