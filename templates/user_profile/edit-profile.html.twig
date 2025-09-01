@@ -3,27 +3,46 @@
 {% block title %}Modifier le profil{% endblock %}
 
 {% block body %}
-
     <div class="container mt-5">
         {% if app.user and app.user.id == editedUser.id %}
             <h1 class="text-center mb-4">Modifier le profil</h1>
         {% else %}
-            <h1 class="text-center mb-4">Modification de profil : {{ editedUser.firstName ~ ' ' ~ editedUser.lastName }}</h1>
+            <h1 class="text-center mb-4">
+                Modification de profil : {{ editedUser.firstName ~ ' ' ~ editedUser.lastName }}
+            </h1>
         {% endif %}
 
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                {{ form_start(edit_profil_form, {'attr': {'novalidate': 'novalidate'}}) }}
+        <div class="row justify-content-center align-items-start">
+            {# Avatar column #}
+            <div class="col-12 col-md-4 text-center mb-4 mb-md-0 mx-5">
+                {% if editedUser.avatarFilename %}
+                    <img src="{{ asset('uploads/avatars/' ~ editedUser.avatarFilename) }}"
+                         alt="Avatar" class="img-thumbnail" style="max-width:500px;">
+                {% else %}
+                    <img src="{{ asset('images/default-avatar.png') }}"
+                         alt="Avatar" class="img-thumbnail" style="max-width:250px;">
+                {% endif %}
+            </div>
+
+            {# Form column #}
+            <div class="col-12 col-md-6">
+                {{ form_start(edit_profil_form, {'attr': {'novalidate': 'novalidate'}, 'multipart': true}) }}
+
+                {# Avatar file input #}
+                <div class="mb-3">
+                    {{ form_label(edit_profil_form.avatarFilename) }}
+                    {{ form_widget(edit_profil_form.avatarFilename, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(edit_profil_form.avatarFilename) }}
+                </div>
 
                 {% set passwordFields = ['oldPassword', 'newPassword', 'confirmNewPassword'] %}
                 {% set passwordMessageShown = false %}
 
                 {% for child in edit_profil_form %}
-                    {% if child.vars.name not in ['_token'] %}
+                    {% if child.vars.name not in ['_token', 'avatarFilename'] %}
 
-                        {# Show the message once above the password fields #}
                         {% if child.vars.name in passwordFields and not passwordMessageShown %}
-                            <p><strong>Si vous souhaitez changer votre mot de passe :</strong></p>
+                            <p class="mt-5"><strong>Si vous souhaitez changer votre mot de passe :</strong></p>
                             {% set passwordMessageShown = true %}
                         {% endif %}
 
@@ -49,14 +68,13 @@
                     {% endif %}
                 {% endfor %}
 
-
                 <div class="mb-3 text-center">
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
                     <a href="{% if app.user.id == editedUser.id %}
                         {{ path('user_profile_details') }}
                      {% else %}
                         {{ path('user_detail', {'id': editedUser.id}) }}
-                    {% endif %}"
+                     {% endif %}"
                        class="btn btn-secondary ms-2">
                         Annuler
                     </a>
@@ -66,5 +84,4 @@
             </div>
         </div>
     </div>
-
 {% endblock %}

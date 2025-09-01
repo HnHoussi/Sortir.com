@@ -7,11 +7,13 @@ use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[IsGranted('ROLE_USER')]
 final class UserProfileController extends AbstractController
@@ -31,6 +33,7 @@ final class UserProfileController extends AbstractController
 
     #[Route('/my-profile/edit', name: 'user_profile_edit')]
     public function editProfile(
+        SluggerInterface $slugger,
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
@@ -46,6 +49,26 @@ final class UserProfileController extends AbstractController
             'is_edit' => true,
         ]);
         $form->handleRequest($request);
+
+        // Handle avatar upload
+        $avatarFile = $form->get('avatarFilename')->getData();
+        if ($avatarFile) {
+            $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$avatarFile->guessExtension();
+
+            try {
+                $avatarFile->move(
+                    $this->getParameter('avatars_directory'), // define this parameter in services.yaml
+                    $newFilename
+                );
+            } catch (FileException $e) {
+                $this->addFlash('error', 'Impossible de télécharger le fichier.');
+            }
+
+            // Update the User entity
+            $user->setAvatarFilename($newFilename);
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             $newPassword = $form->get('newPassword')->getData();

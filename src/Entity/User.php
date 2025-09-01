@@ -76,6 +76,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatarFilename = null;
+
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
@@ -212,18 +215,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-//    public function isAdministrator(): ?bool
-//    {
-//        return $this->administrator;
-//    }
-//
-//    public function setAdministrator(bool $administrator): static
-//    {
-//        $this->administrator = $administrator;
-//
-//        return $this;
-//    }
-
     public function isActive(): bool
     {
         return $this->isActive;
@@ -319,6 +310,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $sortiesInscrit->removeUser($this);
         }
 
+        return $this;
+    }
+
+    public function getAvatarFilename(): ?string
+    {
+        return $this->avatarFilename;
+    }
+
+    public function setAvatarFilename(?string $avatarFilename): static
+    {
+        $this->avatarFilename = $avatarFilename;
         return $this;
     }
 

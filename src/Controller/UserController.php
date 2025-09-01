@@ -8,6 +8,7 @@ use App\Repository\UserRepository;
 use App\Service\AnonymizerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -63,15 +64,30 @@ final class UserController extends AbstractController
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
 
             $roles = $form->get('roles')->getData();
             $user->setRoles([$roles]);
 
-            //password
+            // Password
             $plainPassword = $form->get('plainPassword')->getData();
             $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
+
+            // Avatar upload
+            $avatarFile = $form->get('avatarFilename')->getData();
+            if ($avatarFile) {
+                $newFilename = uniqid() . '.' . $avatarFile->guessExtension();
+                try {
+                    $avatarFile->move(
+                        $this->getParameter('avatars_directory'),
+                        $newFilename
+                    );
+                    $user->setAvatarFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('danger', 'Erreur lors du téléchargement de l\'avatar.');
+                }
+            }
 
             $em->persist($user);
             $em->flush();
@@ -100,7 +116,6 @@ final class UserController extends AbstractController
             throw $this->createNotFoundException('User non trouvé');
         }
 
-        // Block editing another admin (unless it’s yourself)
         $currentUser = $this->getUser();
         if (in_array('ROLE_ADMIN', $user->getRoles(), true) && $user !== $currentUser) {
             $this->addFlash('danger', 'Vous ne pouvez pas modifier le profil d\'un autre administrateur.');
@@ -109,16 +124,30 @@ final class UserController extends AbstractController
 
         $edit_profil_form = $this->createForm(UserType::class, $user, [
             'is_admin' => true,
-            'is_edit' => true, // editing existing user → no password field
+            'is_edit' => true,
         ]);
 
         $edit_profil_form->handleRequest($request);
 
         if ($edit_profil_form->isSubmitted() && $edit_profil_form->isValid()) {
-            // roles
             if ($edit_profil_form->has('roles')) {
                 $roles = $edit_profil_form->get('roles')->getData();
                 $user->setRoles([$roles]);
+            }
+
+            // Avatar upload
+            $avatarFile = $edit_profil_form->get('avatarFilename')->getData();
+            if ($avatarFile) {
+                $newFilename = uniqid() . '.' . $avatarFile->guessExtension();
+                try {
+                    $avatarFile->move(
+                        $this->getParameter('avatars_directory'),
+                        $newFilename
+                    );
+                    $user->setAvatarFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('danger', 'Erreur lors du téléchargement de l\'avatar.');
+                }
             }
 
             $em->flush();

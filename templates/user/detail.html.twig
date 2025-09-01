@@ -7,35 +7,52 @@
         <h1 class="text-center mb-4">👤 Détail de l'utilisateur</h1>
 
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
+            <div class="col-md-8 col-lg-7">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white text-center">
                         <h2 class="h5 mb-0">{{ user.firstName }} {{ user.lastName }}</h2>
                     </div>
                     <div class="card-body">
-                        <dl class="row mb-0">
-                            <dt class="col-5 text-end">Email :</dt>
-                            <dd class="col-7 text-start">{{ user.email }}</dd>
-
-                            <dt class="col-5 text-end">Pseudo :</dt>
-                            <dd class="col-7 text-start">{{ user.pseudo }}</dd>
-
-                            <dt class="col-5 text-end">Téléphone :</dt>
-                            <dd class="col-7 text-start">{{ user.phone ?: '—' }}</dd>
-
-                            <dt class="col-5 text-end">Campus :</dt>
-                            <dd class="col-7 text-start">{{ user.campus ? user.campus.campusName : '—' }}</dd>
-
-                            <dt class="col-5 text-end">Rôle :</dt>
-                            <dd class="col-7 text-start">
-                                {% if 'ROLE_ADMIN' in user.roles %}
-                                    <span class="badge bg-danger">Admin</span>
+                        <div class="row align-items-center">
+                            {# Avatar on the left #}
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                {% if user.avatarFilename %}
+                                    <img src="{{ asset('uploads/avatars/' ~ user.avatarFilename) }}"
+                                         alt="Avatar" class="img-fluid rounded-circle" style="max-width:120px;">
                                 {% else %}
-                                    <span class="badge bg-secondary">Invité</span>
+                                    <img src="{{ asset('images/default-avatar.png') }}"
+                                         alt="Avatar par défaut" class="img-fluid rounded-circle" style="max-width:120px;">
                                 {% endif %}
-                            </dd>
-                        </dl>
+                            </div>
+
+                            {# User info on the right #}
+                            <div class="col-md-8">
+                                <dl class="row mb-0">
+                                    <dt class="col-5 text-end">Email :</dt>
+                                    <dd class="col-7 text-start">{{ user.email }}</dd>
+
+                                    <dt class="col-5 text-end">Pseudo :</dt>
+                                    <dd class="col-7 text-start">{{ user.pseudo }}</dd>
+
+                                    <dt class="col-5 text-end">Téléphone :</dt>
+                                    <dd class="col-7 text-start">{{ user.phone ?: '—' }}</dd>
+
+                                    <dt class="col-5 text-end">Campus :</dt>
+                                    <dd class="col-7 text-start">{{ user.campus ? user.campus.campusName : '—' }}</dd>
+
+                                    <dt class="col-5 text-end">Rôle :</dt>
+                                    <dd class="col-7 text-start">
+                                        {% if 'ROLE_ADMIN' in user.roles %}
+                                            <span class="badge bg-danger">Admin</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Invité</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="card-footer d-flex justify-content-center gap-2">
                         {% set canEditDelete = user.isActive and 'ROLE_ADMIN' not in user.roles %}
 

@@ -4,9 +4,11 @@ namespace App\Form;
 
 use App\Entity\Campus;
 use App\Entity\User;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -28,6 +30,23 @@ class UserType extends AbstractType
                 'choice_label' => 'campusName',
                 'label' => 'Campus',
                 'placeholder' => '----Choisissez un campus----'
+            ])
+            ->add('avatarFilename', FileType::class, [
+                'label' => 'Photo de profil',
+                'mapped' => false,
+                'required' => false,
+                'help' => 'Choisissez un fichier image (JPEG, PNG ou WEBP, max 2 Mo)',
+                'attr' => [
+                    'class' => 'form-control',
+                    'title' => 'Choisissez une image',
+                ],
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2M',
+                        'mimeTypes' => ['image/jpeg','image/png','image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG ou WEBP)',
+                    ])
+                ],
             ]);
 
         if ($options['is_admin']) {
