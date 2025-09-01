@@ -69,15 +69,22 @@ final class SortieController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // Récupère le statut "Créée" depuis la base de données
-            $createdStatus = $statusRepository->findOneBy(['status_label' => 'Créée']);
+            $now = new \DateTimeImmutable();
 
-            if (!$createdStatus) {
-                throw new \Exception('Le statut par défaut "Créée" n\'a pas été trouvé.');
+            if ($sortie->getPublicationDate() && $sortie->getPublicationDate() <= $now) {
+                // Si la date de publication est passée, le statut est "Ouverte"
+                $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+            } else {
+                // Sinon, le statut est "Créée"
+                $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+            }
+
+            if (!$status) {
+                throw new \Exception('Les statuts par défaut "Créée" et/ou "Ouverte" n\'ont pas été trouvés.');
             }
 
             // Assigne le statut à la sortie
-            $sortie->setStatus($createdStatus);
+            $sortie->setStatus($status);
 
             // Assigne l'utilisateur courant comme organisateur
             /** @var User $user */
@@ -88,7 +95,7 @@ final class SortieController extends AbstractController
 
             $em->flush();
 
-            $this->addFlash('success', 'Sortie créé avec succès !');
+            $this->addFlash('success', 'Sortie créée avec succès !');
 
             return $this->redirectToRoute('_detail', ['id' => $sortie->getId()]);
         }

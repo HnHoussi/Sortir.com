@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: SortieRepository::class)]
 class Sortie
@@ -17,18 +18,26 @@ class Sortie
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
+    #[Assert\NotBlank(message: 'Le nom de la sortie est obligatoire.')]
+    #[Assert\Length(min: 2, max: 30, minMessage: 'Le nom doit contenir au moins {{ limit }} caractères.')]
     private ?string $name = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'La date de début est obligatoire.')]
+    #[Assert\GreaterThan(propertyPath: 'registration_deadline', message: 'La date de sortie doit être après la date limite d\'inscription.')]
     private ?\DateTime $start_datetime = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'La durée est obligatoire.')]
+    #[Assert\Positive(message: 'La durée doit être un nombre positif.')]
     private ?int $duration = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\LessThan(propertyPath: 'start_datetime', message: 'La date limite d\'inscription doit être antérieure à la date de la sortie.')]
     private ?\DateTime $registration_deadline = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Positive(message: 'Le nombre d\'inscriptions doit être un nombre positif.')]
     private ?int $max_registrations = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -45,6 +54,7 @@ class Sortie
 
     #[ORM\ManyToOne(inversedBy: 'sorties')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Le lieu est obligatoire.')]
     private ?Place $place = null;
 
     #[ORM\Column]
@@ -67,6 +77,9 @@ class Sortie
      */
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'sortiesInscrit')]
     private Collection $users;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $publicationDate = null;
 
     public function __construct()
     {
@@ -270,6 +283,18 @@ class Sortie
     {
         $this->users->removeElement($user);
         $user->removeSortiesInscrit($this);
+
+        return $this;
+    }
+
+    public function getPublicationDate(): ?\DateTimeImmutable
+    {
+        return $this->publicationDate;
+    }
+
+    public function setPublicationDate(?\DateTimeImmutable $publicationDate): static
+    {
+        $this->publicationDate = $publicationDate;
 
         return $this;
     }

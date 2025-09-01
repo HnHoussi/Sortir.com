@@ -61,7 +61,7 @@
             </table>
         </div>
 
-        {% if is_organisator %}
+        {% if is_organisator and sortie.startDatetime > "now"|date("Y-m-d H:i:s") %}
             <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
         {% endif %}
 
@@ -71,10 +71,6 @@
             {% elseif is_registered %}
                 <a href="{{ path('sortie_unregister', {'id': sortie.id}) }}" class="btn btn-warning mt-3">Se désinscrire</a>
             {% endif %}
-        {% endif %}
-
-        {% if is_organisator %}
-            <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
         {% endif %}
 
         <a href="{{ path('sortie_list') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
