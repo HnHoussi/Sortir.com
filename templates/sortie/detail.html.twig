@@ -61,7 +61,7 @@
             </table>
         </div>
 
-        {% if is_organizer and sortie.startDatetime > "now"|date %}
+        {% if is_organizer and sortie.startDatetime > "now"|date and sortie.status.statusLabel != 'Annulée' %}
             <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
         {% endif %}
 
