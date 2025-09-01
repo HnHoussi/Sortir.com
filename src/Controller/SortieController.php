@@ -34,6 +34,8 @@ final class SortieController extends AbstractController
             $form = $this->createForm(SortieFilterType::class);
             $form->handleRequest($request);
 
+        $filters = $form->getData() ?? [];
+        $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
             // Initialise les filtres avec un tableau vide
             $filters = [];
 
@@ -101,6 +103,8 @@ final class SortieController extends AbstractController
     #[Route('/{id}', name: '_detail')]
     public function detail(Sortie $sortie): Response
     {
+
+        $isOrganizer  = $this->getUser() === $sortie->getOrganizer();
         $user = $this->getUser();
         $isOrganisator = $user && $user->getId() === $sortie->getOrganisator()->getId();
         $isRegistered = $user && $sortie->getUsers()->contains($user);
@@ -205,7 +209,7 @@ final class SortieController extends AbstractController
     #[Route('/{id}/cancel', name: '_cancel')]
     public function cancel(Sortie $sortie, Request $request, EntityManagerInterface $em, StatusRepository $statusRepository): Response
     {
-        if ($sortie->getOrganisator() !== $this->getUser()) {
+        if ($sortie->getOrganizer() !== $this->getUser()) {
             throw new AccessDeniedException('Vous n\'êtes pas l\'organisateur de cette sortie.');
         }
 

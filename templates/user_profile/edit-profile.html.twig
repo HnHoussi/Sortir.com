@@ -1,80 +1,70 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier mon profil{% endblock %}
+{% block title %}Modifier le profil{% endblock %}
 
 {% block body %}
+
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Modifier mon profil</h1>
+        {% if app.user and app.user.id == editedUser.id %}
+            <h1 class="text-center mb-4">Modifier le profil</h1>
+        {% else %}
+            <h1 class="text-center mb-4">Modification de profil : {{ editedUser.firstName ~ ' ' ~ editedUser.lastName }}</h1>
+        {% endif %}
+
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
+                {{ form_start(edit_profil_form, {'attr': {'novalidate': 'novalidate'}}) }}
 
-                <form method="post">
-                    {{ form_row(edit_profil_form._token) }}
+                {% set passwordFields = ['oldPassword', 'newPassword', 'confirmNewPassword'] %}
+                {% set passwordMessageShown = false %}
 
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.firstName) }}
-                        {{ form_widget(edit_profil_form.firstName, {'attr': {'class': 'form-control'}}) }}
-                    </div>
+                {% for child in edit_profil_form %}
+                    {% if child.vars.name not in ['_token'] %}
 
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.lastName) }}
-                        {{ form_widget(edit_profil_form.lastName, {'attr': {'class': 'form-control'}}) }}
-                    </div>
+                        {# Show the message once above the password fields #}
+                        {% if child.vars.name in passwordFields and not passwordMessageShown %}
+                            <p><strong>Si vous souhaitez changer votre mot de passe :</strong></p>
+                            {% set passwordMessageShown = true %}
+                        {% endif %}
 
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.pseudo) }}
-                        {{ form_widget(edit_profil_form.pseudo, {'attr': {'class': 'form-control'}}) }}
-                    </div>
+                        {% if child.vars.block_prefixes[1] == 'repeated' %}
+                            <div class="mb-3">
+                                {{ form_label(child.first) }}
+                                {{ form_widget(child.first, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(child.first) }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form_label(child.second) }}
+                                {{ form_widget(child.second, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(child.second) }}
+                            </div>
+                        {% else %}
+                            <div class="mb-3">
+                                {{ form_label(child) }}
+                                {{ form_widget(child, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(child) }}
+                            </div>
+                        {% endif %}
 
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.phone) }}
-                        {{ form_widget(edit_profil_form.phone, {'attr': {'class': 'form-control'}}) }}
-                    </div>
+                    {% endif %}
+                {% endfor %}
 
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.email) }}
-                        {{ form_widget(edit_profil_form.email, {'attr': {'class': 'form-control'}}) }}
-                    </div>
 
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.campus) }}
-                        {{ form_widget(edit_profil_form.campus, {'attr': {'class': 'form-select'}}) }}
-                    </div>
+                <div class="mb-3 text-center">
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                    <a href="{% if app.user.id == editedUser.id %}
+                        {{ path('user_profile_details') }}
+                     {% else %}
+                        {{ path('user_detail', {'id': editedUser.id}) }}
+                    {% endif %}"
+                       class="btn btn-secondary ms-2">
+                        Annuler
+                    </a>
+                </div>
 
-                    {# Password section #}
-                    <p style="font-weight: bold" class="mt-5">Si vous voulez changer le mot de passe :</p>
-
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.oldPassword) }}
-                        {{ form_widget(edit_profil_form.oldPassword, {
-                            'attr': {
-                                'class': 'form-control' ~ (edit_profil_form.oldPassword.vars.errors|length ? ' is-invalid' : '')
-                            }
-                        }) }}
-                        {% for error in edit_profil_form.oldPassword.vars.errors %}
-                            <div class="text-danger">{{ error.message }}</div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.newPassword.first) }}
-                        {{ form_widget(edit_profil_form.newPassword.first, {'attr': {'class': 'form-control'}}) }}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form_label(edit_profil_form.newPassword.second) }}
-                        {{ form_widget(edit_profil_form.newPassword.second, {'attr': {'class': 'form-control'}}) }}
-                    </div>
-
-                    <div class="mb-3 text-center">
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                        <a href="{{ path('app_user_profile') }}" class="btn btn-secondary ms-2">Annuler</a>
-
-                    </div>
-
-                </form>
-
+                {{ form_end(edit_profil_form) }}
             </div>
         </div>
     </div>
+
 {% endblock %}

@@ -3,17 +3,20 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[UniqueEntity('pseudo')]
-#[UniqueEntity('email')]
+#[UniqueEntity('email', message: 'Cet email est déjà utilisé.')]
+#[UniqueEntity('pseudo', message: 'Ce pseudo est déjà utilisé.')]
+#[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -21,57 +24,61 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
-    private ?string $email = null;
+    #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: "L'adresse email est obligatoire.")]
+    #[Assert\Email(message: "L'adresse email n'est pas valide.")]
+    #[Assert\Regex(pattern: "/@campus-eni\.fr$/", message: "L'adresse email doit se terminer par @campus-eni.fr")]
+    private string $email;
 
-    /**
-     * @var list<string> The user roles
-     */
     #[ORM\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
+    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.", groups: ['user_create'])]
+    #[Assert\Length(min: 8, minMessage: "Le mot de passe doit faire au moins {{ limit }} caractères.", groups: ['user_create'])]
     #[ORM\Column]
-    private ?string $password = null;
+    private ?string $password;
+
+    #[ORM\Column(length: 30, unique: true)]
+    #[Assert\NotBlank(message: "Le pseudo est obligatoire.")]
+    #[Assert\Length(max: 30, maxMessage: "Le pseudo ne peut pas dépasser {{ limit }} caractères.")]
+    #[Assert\Regex(pattern: '/^[A-Za-z0-9._-]+$/', message: "Le pseudo ne peut contenir que lettres, chiffres, points, tirets et underscores.")]
+    private string $pseudo;
 
     #[ORM\Column(length: 30)]
-    private ?string $pseudo = null;
+    #[Assert\NotBlank(message: "Le nom est obligatoire.")]
+    private string $lastName;
 
     #[ORM\Column(length: 30)]
-    private ?string $lastName = null;
+    #[Assert\NotBlank(message: "Le prénom est obligatoire.")]
+    private string $firstName;
 
-    #[ORM\Column(length: 30)]
-    private ?string $firstName = null;
-
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Assert\Regex(pattern: '/^\+?[0-9\s-]{6,20}$/', message: "Le numéro de téléphone n'est pas valide.")]
     private ?string $phone = null;
 
     #[ORM\Column]
-    private ?bool $administrator = false;
-
-    #[ORM\Column]
-    private ?bool $isActive = true;
+    private bool $isActive = true;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: "Le campus est obligatoire.")]
     private ?Campus $campus = null;
 
-    /**
-     * @var Collection<int, Sortie>
-     */
-    #[ORM\OneToMany(targetEntity: Sortie::class, mappedBy: 'organisator', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Sortie::class, mappedBy: 'organizer', orphanRemoval: true)]
     private Collection $sortiesOrganisees;
 
-    /**
-     * @var Collection<int, Sortie>
-     */
     #[ORM\ManyToMany(targetEntity: Sortie::class, mappedBy: 'users')]
     private Collection $sortiesInscrit;
 
+    #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private DateTimeImmutable $createdAt;
+
+    #[ORM\Column(nullable: true)]
+    private ?DateTimeImmutable $updatedAt = null;
+
     public function __construct()
     {
+        $this->createdAt = new DateTimeImmutable();
         $this->sortiesOrganisees = new ArrayCollection();
         $this->sortiesInscrit = new ArrayCollection();
     }
@@ -81,14 +88,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
 
     public function setEmail(string $email): static
     {
-        $this->email = $email;
+        $this->email = trim($email);
 
         return $this;
     }
@@ -100,7 +107,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
     /**
@@ -133,7 +140,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->password;
     }
 
-    public function setPassword(string $password): static
+    public function setPassword(?string $password): static
     {
         $this->password = $password;
 
@@ -157,38 +164,38 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // @deprecated, to be removed when upgrading to Symfony 8
     }
 
-    public function getPseudo(): ?string
+    public function getPseudo(): string
     {
         return $this->pseudo;
     }
 
-    public function setPseudo(string $pseudo): static
+    public function setPseudo(?string $pseudo): static
     {
-        $this->pseudo = $pseudo;
+        $this->pseudo = trim($pseudo);
 
         return $this;
     }
 
-    public function getLastName(): ?string
+    public function getLastName(): string
     {
         return $this->lastName;
     }
 
-    public function setLastName(string $lastName): static
+    public function setLastName(?string $lastName): static
     {
-        $this->lastName = $lastName;
+        $this->lastName = trim($lastName);
 
         return $this;
     }
 
-    public function getFirstName(): ?string
+    public function getFirstName(): string
     {
         return $this->firstName;
     }
 
-    public function setFirstName(string $firstName): static
+    public function setFirstName(?string $firstName): static
     {
-        $this->firstName = $firstName;
+        $this->firstName = trim($firstName);
 
         return $this;
     }
@@ -198,26 +205,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->phone;
     }
 
-    public function setPhone(string $phone): static
+    public function setPhone(?string $phone): static
     {
-        $this->phone = $phone;
+        $this->phone = trim($phone);
 
         return $this;
     }
 
-    public function isAdministrator(): ?bool
-    {
-        return $this->administrator;
-    }
+//    public function isAdministrator(): ?bool
+//    {
+//        return $this->administrator;
+//    }
+//
+//    public function setAdministrator(bool $administrator): static
+//    {
+//        $this->administrator = $administrator;
+//
+//        return $this;
+//    }
 
-    public function setAdministrator(bool $administrator): static
-    {
-        $this->administrator = $administrator;
-
-        return $this;
-    }
-
-    public function isActive(): ?bool
+    public function isActive(): bool
     {
         return $this->isActive;
     }
@@ -241,6 +248,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getCreatedAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new DateTimeImmutable();
+    }
+
     /**
      * @return Collection<int, Sortie>
      */
@@ -253,7 +277,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->sortiesOrganisees->contains($sortiesOrganisee)) {
             $this->sortiesOrganisees->add($sortiesOrganisee);
-            $sortiesOrganisee->setOrganisator($this);
+            $sortiesOrganisee->setOrganizer($this);
         }
 
         return $this;
@@ -263,8 +287,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->sortiesOrganisees->removeElement($sortiesOrganisee)) {
             // set the owning side to null (unless already changed)
-            if ($sortiesOrganisee->getOrganisator() === $this) {
-                $sortiesOrganisee->setOrganisator(null);
+            if ($sortiesOrganisee->getOrganizer () === $this) {
+                $sortiesOrganisee->setOrganizer (null);
             }
         }
 

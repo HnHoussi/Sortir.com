@@ -26,7 +26,7 @@ class Place
     #[ORM\Column(nullable: true)]
     private ?float $longitude = null;
 
-    #[ORM\OneToMany(targetEntity: Sortie::class, mappedBy: 'place')]
+    #[ORM\OneToMany(targetEntity: Sortie::class, mappedBy: 'place', orphanRemoval: true)]
     private Collection $sorties;
 
     #[ORM\ManyToOne(inversedBy: 'places')]

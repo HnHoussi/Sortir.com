@@ -27,10 +27,7 @@
                 <ul class="navbar-nav ms-auto">
                     {% if is_granted('ROLE_ADMIN') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Villes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Campus</a>
+                            <a class="nav-link" href="{{ path('admin_users_list') }}">Liste des utilisateurs</a>
                         </li>
                     {% endif %}
                     <li class="nav-item">
@@ -41,7 +38,7 @@
                             <a class="nav-link" href="{{ path('sortie_create') }}">Nouvelle sortie</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_user_profile') }}">Mon profil</a>
+                            <a class="nav-link" href="{{ path('user_profile_details') }}">Mon profil</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_logout') }}">Se déconnecter</a>
