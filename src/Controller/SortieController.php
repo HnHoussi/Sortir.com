@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use DateTime;
+
 #[Route('/sortie', name: 'sortie')]
 final class SortieController extends AbstractController
 {
@@ -24,23 +26,41 @@ final class SortieController extends AbstractController
     #[Route('', name: '_list')]
     public function list(SortieRepository $sortieRepository, Request $request): Response
     {
-        $form = $this->createForm(SortieFilterType::class);
-        $form->handleRequest($request);
-
-        // Modif SLB pour les conditions d'inscription ensuite (reconnaissance du user)
-        $filters = $form->getData() ?? [];
+        // Récupère l'utilisateur connecté, ou null si non connecté
         $user = $this->getUser();
 
-        $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
+        if ($user) {
+            // Si l'utilisateur est connecté, on procède avec les filtres
+            $form = $this->createForm(SortieFilterType::class);
+            $form->handleRequest($request);
+
+            // Initialise les filtres avec un tableau vide
+            $filters = [];
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $filters = $form->getData();
+            }
+
+            // Récupère les sorties en fonction des filtres et de l'utilisateur connecté
+            $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
+        } else {
+            // Si l'utilisateur n'est pas connecté, on affiche toutes les sorties
+            $sorties = $sortieRepository->findAll();
+            $form = $this->createForm(SortieFilterType::class); // Crée le formulaire pour l'affichage, même si non utilisé
+        }
 
         return $this->render('sortie/list.html.twig', [
             'sorties' => $sorties,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 
     #[Route('/create', name: '_create')]
-    public function create(EntityManagerInterface $em, Request $request): Response
+    public function create(
+        EntityManagerInterface $em,
+        Request $request,
+        StatusRepository $statusRepository // Injection du repository de statut
+    ): Response
     {
         // Logique pour créer une sortie
         $sortie = new Sortie();
@@ -48,7 +68,21 @@ final class SortieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $sortie = $form->getData();
+
+            // Récupère le statut "Créée" depuis la base de données
+            $createdStatus = $statusRepository->findOneBy(['status_label' => 'Créée']);
+
+            if (!$createdStatus) {
+                throw new \Exception('Le statut par défaut "Créée" n\'a pas été trouvé.');
+            }
+
+            // Assigne le statut à la sortie
+            $sortie->setStatus($createdStatus);
+
+            // Assigne l'utilisateur courant comme organisateur
+            /** @var User $user */
+            $user = $this->getUser();
+            $sortie->setOrganisator($user);
 
             $em->persist($sortie);
 
@@ -169,7 +203,7 @@ final class SortieController extends AbstractController
     }
 
     #[Route('/{id}/cancel', name: '_cancel')]
-    public function cancel (Sortie $sortie, Request $request, EntityManagerInterface $em, StatusRepository $statusRepository): Response
+    public function cancel(Sortie $sortie, Request $request, EntityManagerInterface $em, StatusRepository $statusRepository): Response
     {
         if ($sortie->getOrganisator() !== $this->getUser()) {
             throw new AccessDeniedException('Vous n\'êtes pas l\'organisateur de cette sortie.');
@@ -207,14 +241,14 @@ final class SortieController extends AbstractController
 
     }
 
-    #[Route('/archive', name: 'sortie_archive', methods: ['GET'])]
+    #[Route('/archive', name: '_archive', methods: ['GET'])]
     public function archiveSorties(SortieRepository $sortieRepository, EntityManagerInterface $entityManager): Response
     {
         $dateLimit = new \DateTime('-1 month');
 
         $sortiesToArchive = $sortieRepository->findOldSortiesForArchiving($dateLimit);
 
-        $archivedStatus = $entityManager->getRepository(Status::class)->findOneBy(['code' => 'Archivée']);
+        $archivedStatus = $entityManager->getRepository(Status::class)->findOneBy(['status_label' => 'Archivée']);
 
         if (!$archivedStatus) {
             return new Response('Statut "Archivée" non trouvé. Impossible d\'archiver.', Response::HTTP_NOT_FOUND);
