@@ -91,8 +91,7 @@ final class SortieController extends AbstractController
             // Assigne l'utilisateur courant comme organisateur
             /** @var User $user */
             $user = $this->getUser();
-            $sortie->setOrganisator($user);
-            $sortie->setState(0); // ou une autre valeur par défaut selon ta logique métier
+            $sortie->setOrganizer($user);
             $sortie->setOrganizer($user);
 
             $em->persist($sortie);
