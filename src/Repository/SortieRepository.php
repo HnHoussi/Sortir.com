@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Entity\Sortie;
+use DateTimeImmutable;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -53,9 +54,10 @@ class SortieRepository extends ServiceEntityRepository
             ->leftJoin('s.status', 'st')
             ->addSelect('p', 'c', 'o', 'st');
 
-        // Exclusion des sorties archivées
-        $qb->andWhere('st.status_label != :archived_status')
-            ->setParameter('archived_status', 'Archivée');
+        // Exclusion des sorties archivées et des sorties créées (non publiées)
+        $qb->andWhere('st.status_label != :archived_status AND st.status_label != :created_status')
+            ->setParameter('archived_status', 'Archivée')
+            ->setParameter('created_status', 'Créée');
 
         if (!empty($filters['name'])) {
             $qb->andWhere('s.name LIKE :name')
@@ -97,8 +99,8 @@ class SortieRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-
-    public function findOldSortiesForArchiving(DateTime $dateLimit): array
+    //Archivage des sorties
+    public function findOldSortiesForArchiving(\DateTime $dateLimit): array
     {
         return $this->createQueryBuilder('s')
             ->leftJoin('s.status', 'st')
@@ -106,6 +108,33 @@ class SortieRepository extends ServiceEntityRepository
             ->andWhere('s.startDatetime < :dateLimit')
             ->setParameter('statusCodes', ['Terminée', 'Annulée'])
             ->setParameter('dateLimit', $dateLimit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Automatisation du passage du statut "créée" à "ouverte"
+    public function findSortiesToOpen(DateTimeImmutable $now): array
+    {
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.status', 'st')
+            ->andWhere('st.status_label = :created_status')
+            ->andWhere('s.publicationDate IS NOT NULL')
+            ->andWhere('s.publicationDate <= :now')
+            ->setParameter('created_status', 'Créée')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getResult();
+    }
+
+    // Automatisation du passage du statut "ouverte" à "fermée"
+    public function findSortiesToClose(\DateTimeImmutable $now): array
+    {
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.status', 'st')
+            ->andWhere('st.status_label = :open_status')
+            ->andWhere('s.registrationDeadline <= :now')
+            ->setParameter('open_status', 'Ouverte')
+            ->setParameter('now', $now)
             ->getQuery()
             ->getResult();
     }

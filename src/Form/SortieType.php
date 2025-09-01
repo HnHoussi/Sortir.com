@@ -13,6 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class SortieType extends AbstractType
@@ -26,6 +28,15 @@ class SortieType extends AbstractType
                     'placeholder' => 'Entrez le nom de la sortie',
                     'class' => 'form-control rounded-lg'
                 ]
+            ])
+            ->add('publicationDate', DateTimeType::class, [
+                'label' => 'Date de publication',
+                'html5' => true,
+                'widget' => 'single_text',
+                'attr' => [
+                    'class' => 'form-control rounded-lg'
+                ],
+                'required' => false,
             ])
             ->add('start_datetime', DateTimeType::class, [
                 'label' => 'Date et heure de la sortie',
