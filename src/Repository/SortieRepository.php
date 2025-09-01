@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Entity\Sortie;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -48,11 +49,11 @@ class SortieRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('s')
             ->leftJoin('s.place', 'p')
             ->leftJoin('p.city', 'c')
-            ->leftJoin('s.organisator', 'o')
+            ->leftJoin('s.organizer', 'o')
             ->leftJoin('s.status', 'st')
             ->addSelect('p', 'c', 'o', 'st');
 
-        // Exclusion des sorties archivées de l'affichage
+        // Exclusion des sorties archivées
         $qb->andWhere('st.status_label != :archived_status')
             ->setParameter('archived_status', 'Archivée');
 
@@ -68,7 +69,7 @@ class SortieRepository extends ServiceEntityRepository
 
         if (!empty($filters['campus'])) {
             $qb->andWhere('o.campus = :campus')
-                ->setParameter('campus', $filters['campus']); // PAS besoin de getId()
+                ->setParameter('campus', $filters['campus']->getId());
         }
 
 
@@ -78,8 +79,8 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('statusId', $filters['status']->getId());
         }
 
-        if (!empty($filters['organisator'])) {
-            $qb->andWhere('s.organisator = :user')
+        if (!empty($filters['organizer'])) {
+            $qb->andWhere('s.organizer = :user')
                 ->setParameter('user', $user);
         }
 
@@ -104,7 +105,20 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('now', new \DateTime());
         }
 
-        return $qb->orderBy('s.start_datetime', 'ASC')
+           return $qb->orderBy('s.startDatetime', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+
+    public function findOldSortiesForArchiving(DateTime $dateLimit): array
+    {
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.status', 'st')
+            ->andWhere('st.status_label IN (:statusCodes)')
+            ->andWhere('s.startDatetime < :dateLimit')
+            ->setParameter('statusCodes', ['Terminée', 'Annulée'])
+            ->setParameter('dateLimit', $dateLimit)
             ->getQuery()
             ->getResult();
     }

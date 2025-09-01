@@ -54,11 +54,11 @@ class PopulateDbSqlCommand extends Command
         // --- 2. Insert Sortie entities ---
         try {
             // Ensure related entities exist
-            $organisator = $this->em->getRepository(User::class)->find(1);
+            $organizer = $this->em->getRepository(User::class)->find(1);
             $place = $this->em->getRepository(Place::class)->find(1);
             $status = $this->em->getRepository(Status::class)->find(1);
 
-            if (!$organisator || !$place || !$status) {
+            if (!$organizer || !$place || !$status) {
                 $io->warning('Missing User, Place, or Status (id=1). Cannot insert Sortie.');
                 return Command::SUCCESS;
             }
@@ -74,9 +74,9 @@ class PopulateDbSqlCommand extends Command
                     ->setDescription("Sortie de test numéro $i")
                     ->setPhotoUrl(null)
                     ->setPlace($place)
-                    ->setState(1) // example: 1 = open
+                    ->setStatus(1) // example: 1 = open
                     ->setStatus($status)
-                    ->setOrganisator($organisator);
+                    ->setOrganizer($organizer);
 
                 $this->em->persist($sortie);
             }

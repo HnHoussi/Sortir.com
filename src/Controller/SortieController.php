@@ -26,17 +26,24 @@ final class SortieController extends AbstractController
     #[Route('', name: '_list')]
     public function list(SortieRepository $sortieRepository, Request $request): Response
     {
+        // Récupère l'utilisateur connecté, ou null si non connecté
         $user = $this->getUser();
 
-        // Création du formulaire de filtre
-        $form = $this->createForm(SortieFilterType::class);
-        $form->handleRequest($request);
-
-        // Récupération des données du formulaire
-        $filters = $form->getData() ?? [];
-
-        // Si l'utilisateur est connecté, on applique les filtres personnalisés
         if ($user) {
+            // Si l'utilisateur est connecté, on procède avec les filtres
+            $form = $this->createForm(SortieFilterType::class);
+            $form->handleRequest($request);
+
+        $filters = $form->getData() ?? [];
+        $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
+            // Initialise les filtres avec un tableau vide
+            $filters = [];
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $filters = $form->getData();
+            }
+
+            // Récupère les sorties en fonction des filtres et de l'utilisateur connecté
             $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
         } else {
             // Si l'utilisateur n'est pas connecté, on affiche toutes les sorties
@@ -79,6 +86,7 @@ final class SortieController extends AbstractController
             $user = $this->getUser();
             $sortie->setOrganisator($user);
             $sortie->setState(0); // ou une autre valeur par défaut selon ta logique métier
+            $sortie->setOrganizer($user);
 
             $em->persist($sortie);
 
@@ -97,15 +105,17 @@ final class SortieController extends AbstractController
     #[Route('/{id}', name: '_detail')]
     public function detail(Sortie $sortie): Response
     {
+
+        $isOrganizer  = $this->getUser() === $sortie->getOrganizer();
         $user = $this->getUser();
-        $isOrganisator = $user && $user->getId() === $sortie->getOrganisator()->getId();
+        $isOrganizer = $user && $user->getId() === $sortie->getOrganizer()->getId();
         $isRegistered = $user && $sortie->getUsers()->contains($user);
         $isFull = count($sortie->getUsers()) >= $sortie->getMaxRegistrations();
         $isRegistrationOpen = $sortie->getStatus()->getStatusLabel() === 'Ouverte' && new \DateTime() < $sortie->getRegistrationDeadline();
 
         return $this->render('sortie/detail.html.twig', [
             'sortie' => $sortie,
-            'is_organisator' => $isOrganisator,
+            'is_organizer' => $isOrganizer,
             'is_registered' => $isRegistered,
             'is_full' => $isFull,
             'is_registration_open' => $isRegistrationOpen,
@@ -142,7 +152,7 @@ final class SortieController extends AbstractController
         $now = new \DateTime();
 
         // Vérification de l'organisateur
-        if ($sortie->getOrganisator() === $user) {
+        if ($sortie->getOrganizer() === $user) {
             return 'En tant qu\'organisateur, vous ne pouvez pas vous inscrire à votre propre sortie.';
         }
 
@@ -201,7 +211,7 @@ final class SortieController extends AbstractController
     #[Route('/{id}/cancel', name: '_cancel')]
     public function cancel(Sortie $sortie, Request $request, EntityManagerInterface $em, StatusRepository $statusRepository): Response
     {
-        if ($sortie->getOrganisator() !== $this->getUser()) {
+        if ($sortie->getOrganizer() !== $this->getUser()) {
             throw new AccessDeniedException('Vous n\'êtes pas l\'organisateur de cette sortie.');
         }
 

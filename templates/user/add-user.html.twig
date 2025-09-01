@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un utilisateur{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Ajouter un utilisateur</h1>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                {{ form_row(form.firstName) }}
+                {{ form_row(form.lastName) }}
+                {{ form_row(form.pseudo) }}
+                {{ form_row(form.phone) }}
+                {{ form_row(form.email) }}
+                {{ form_row(form.campus) }}
+
+                {% if form.roles is defined %}
+                    {{ form_row(form.roles) }}
+                {% endif %}
+
+                {% if form.plainPassword is defined %}
+                    {{ form_row(form.plainPassword.first) }}
+                    {{ form_row(form.plainPassword.second) }}
+                {% endif %}
+
+                {% if form.oldPassword is defined %}
+                    {{ form_row(form.oldPassword) }}
+                {% endif %}
+
+                {% if form.newPassword is defined %}
+                    {{ form_row(form.newPassword.first) }}
+                    {{ form_row(form.newPassword.second) }}
+                {% endif %}
+
+                <div class="mb-3 text-center">
+                    <button type="submit" class="btn btn-primary">Ajouter</button>
+                    <a href="{{ path('admin_users_list') }}" class="btn btn-secondary ms-2">Annuler</a>
+                </div>
+                {{ form_end(form) }}
+
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

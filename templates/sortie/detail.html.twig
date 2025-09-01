@@ -61,11 +61,11 @@
             </table>
         </div>
 
-        {% if is_organisator %}
+        {% if is_organizer %}
             <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
         {% endif %}
 
-        {% if not is_organisator and is_registration_open %}
+        {% if not is_organizer and is_registration_open %}
             {% if not is_registered and not is_full %}
                 <a href="{{ path('sortie_register', {'id': sortie.id}) }}" class="btn btn-success mt-3">S'inscrire à cette sortie</a>
             {% elseif is_registered %}
@@ -73,7 +73,7 @@
             {% endif %}
         {% endif %}
 
-        {% if is_organisator %}
+        {% if is_organizer %}
             <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
         {% endif %}
 
