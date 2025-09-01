@@ -84,7 +84,7 @@ final class SortieController extends AbstractController
             // Assigne l'utilisateur courant comme organisateur
             /** @var User $user */
             $user = $this->getUser();
-            $sortie->setOrganisator($user);
+            $sortie->setOrganizer($user);
 
             $em->persist($sortie);
 
@@ -106,14 +106,14 @@ final class SortieController extends AbstractController
 
         $isOrganizer  = $this->getUser() === $sortie->getOrganizer();
         $user = $this->getUser();
-        $isOrganisator = $user && $user->getId() === $sortie->getOrganisator()->getId();
+        $isOrganizer = $user && $user->getId() === $sortie->getOrganizer()->getId();
         $isRegistered = $user && $sortie->getUsers()->contains($user);
         $isFull = count($sortie->getUsers()) >= $sortie->getMaxRegistrations();
         $isRegistrationOpen = $sortie->getStatus()->getStatusLabel() === 'Ouverte' && new \DateTime() < $sortie->getRegistrationDeadline();
 
         return $this->render('sortie/detail.html.twig', [
             'sortie' => $sortie,
-            'is_organisator' => $isOrganisator,
+            'is_organizer' => $isOrganizer,
             'is_registered' => $isRegistered,
             'is_full' => $isFull,
             'is_registration_open' => $isRegistrationOpen,
@@ -150,7 +150,7 @@ final class SortieController extends AbstractController
         $now = new \DateTime();
 
         // Vérification de l'organisateur
-        if ($sortie->getOrganisator() === $user) {
+        if ($sortie->getOrganizer() === $user) {
             return 'En tant qu\'organisateur, vous ne pouvez pas vous inscrire à votre propre sortie.';
         }
 

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Entity\Sortie;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -52,7 +53,7 @@ class SortieRepository extends ServiceEntityRepository
             ->leftJoin('s.status', 'st')
             ->addSelect('p', 'c', 'o', 'st');
 
-        //Exclusion des sorties archivées de l'afficahge
+        // Exclusion des sorties archivées
         $qb->andWhere('st.status_label != :archived_status')
             ->setParameter('archived_status', 'Archivée');
 
@@ -91,14 +92,13 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('place_id', $filters['place']->getId());
         }
 
-
-        return $qb->orderBy('s.startDatetime', 'ASC')
         return $qb->orderBy('s.startDatetime', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
-    public function findOldSortiesForArchiving(\DateTime $dateLimit): array
+
+    public function findOldSortiesForArchiving(DateTime $dateLimit): array
     {
         return $this->createQueryBuilder('s')
             ->leftJoin('s.status', 'st')
