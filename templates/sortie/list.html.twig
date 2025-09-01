@@ -34,12 +34,17 @@
                             <div class="card-body bg-dark bg-opacity-50 d-flex flex-column">
                                 <h5 class="card-title">{{ sortie.name }}</h5>
                                 <p class="card-text mb-1">
+                                    <strong>Campus :</strong> {{ sortie.organisator.campus.campusName }}
+
+                                </p>
+                                <p class="card-text mb-1">
                                     <strong>Date :</strong>
                                     {{ sortie.startDatetime ? sortie.startDatetime|date('d/m/Y H:i') : '—' }}
                                 </p>
                                 <p class="card-text mb-1">
                                     <strong>Durée :</strong> {{ sortie.duration }} min
                                 </p>
+
                                 <p class="card-text mb-1">
                                     <strong>Lieu :</strong> {{ sortie.place }}
                                 </p>

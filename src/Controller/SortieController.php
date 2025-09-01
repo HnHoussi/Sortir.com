@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use DateTime;
+
 
 #[Route('/sortie', name: 'sortie')]
 final class SortieController extends AbstractController
@@ -48,14 +48,14 @@ final class SortieController extends AbstractController
         } else {
             // Si l'utilisateur n'est pas connecté, on affiche toutes les sorties
             $sorties = $sortieRepository->findAll();
-            $form = $this->createForm(SortieFilterType::class); // Crée le formulaire pour l'affichage, même si non utilisé
         }
 
         return $this->render('sortie/list.html.twig', [
             'sorties' => $sorties,
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
+
 
     #[Route('/create', name: '_create')]
     public function create(
@@ -91,6 +91,8 @@ final class SortieController extends AbstractController
             // Assigne l'utilisateur courant comme organisateur
             /** @var User $user */
             $user = $this->getUser();
+            $sortie->setOrganisator($user);
+            $sortie->setState(0); // ou une autre valeur par défaut selon ta logique métier
             $sortie->setOrganizer($user);
 
             $em->persist($sortie);

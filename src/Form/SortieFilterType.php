@@ -6,6 +6,8 @@ use App\Entity\Campus;
 use App\Entity\City;
 use App\Entity\Place;
 use App\Entity\Status;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -38,9 +40,15 @@ class SortieFilterType extends AbstractType
             ])
             ->add('status', EntityType::class, [
                 'class' => Status::class,
-                'choice_label' => 'statusLabel', // assure-toi que Status a bien cette propriété
+                'choice_label' => 'statusLabel',
                 'placeholder' => 'Tous les états',
                 'required' => false,
+                'query_builder' => function (EntityRepository $er): QueryBuilder {
+                    return $er->createQueryBuilder('s')
+                        ->where('s.status_label != :status_label')
+                        ->setParameter('status_label', 'Créée')
+                        ->orderBy('s.status_label', 'ASC');
+                },
             ])
             ->add('campus', EntityType::class, [
                 'class' => Campus::class,

@@ -74,9 +74,11 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('campus', $filters['campus']->getId());
         }
 
-        if (!empty($filters['statut'])) {
-            $qb->andWhere('st.id = :status_id')
-                ->setParameter('status_id', $filters['statut']->getId());
+
+        // **Filtre par statut**
+        if (!empty($filters['status'])) {
+            $qb->andWhere('st.id = :statusId')
+                ->setParameter('statusId', $filters['status']->getId());
         }
 
         if (!empty($filters['organizer'])) {
@@ -89,12 +91,23 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('user', $user);
         }
 
+        // **Filtre pour 'not_user'**
+        if (!empty($filters['not_user'])) {
+            $qb->andWhere(':user NOT MEMBER OF s.users')
+                ->setParameter('user', $user);
+        }
+
         if (!empty($filters['place'])) {
             $qb->andWhere('p.id = :place_id')
                 ->setParameter('place_id', $filters['place']->getId());
         }
 
-        return $qb->orderBy('s.startDatetime', 'ASC')
+        if (!empty($filters['past'])) {
+            $qb->andWhere('s.start_datetime < :now')
+                ->setParameter('now', new \DateTime());
+        }
+
+           return $qb->orderBy('s.startDatetime', 'ASC')
             ->getQuery()
             ->getResult();
     }
