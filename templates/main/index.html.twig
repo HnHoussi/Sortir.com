@@ -1,13 +1,39 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Accueil - Sortir.com{% endblock %}
 
 {% block body %}
-    <h1>BONJOUR {{ app.user ? app.user.firstName : '' }}!</h1>
+    <div class="container mt-5 text-center">
+        <h1 class="display-4 mb-4">
+            👋 Bonjour {{ app.user ? app.user.firstName : 'et bienvenue sur Sortir.com' }} !
+        </h1>
 
-    {% if app.user %}
-        <p>Vous êtes connecté... ENJOY</p>
-    {% else %}
-        <p>Se connecter pour accéder à votre compte</p>
-    {% endif %}
+        {% if app.user %}
+            <p class="lead text-success">Vous êtes connecté... ENJOY 🎉</p>
+            <a href="{{ path('sortie_list') }}" class="btn btn-primary btn-lg mt-3">Accéder à vos événements</a>
+        {% else %}
+            <p class="lead text-muted">Connectez-vous pour créer, gérer ou découvrir des événements passionnants.</p>
+            <div class="mt-4">
+                <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-lg mr-2">Se connecter</a>
+                <a href="#" class="btn btn-outline-success btn-lg">Créer un compte</a>
+            </div>
+        {% endif %}
+
+        <hr class="my-5">
+
+        <div class="row">
+            <div class="col-md-4">
+                <h3>📅 Créez vos événements</h3>
+                <p>Planifiez des moments uniques et partagez-les avec votre communauté.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>🌍 Explorez</h3>
+                <p>Découvrez ce qui se passe autour de vous ou dans vos domaines préférés.</p>
+            </div>
+            <div class="col-md-4">
+                <h3>💬 Connectez-vous</h3>
+                <p>Rencontrez des passionnés et vivez des expériences mémorables.</p>
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -52,7 +52,7 @@ class SortieRepository extends ServiceEntityRepository
             ->leftJoin('s.status', 'st')
             ->addSelect('p', 'c', 'o', 'st');
 
-        //Exclusion des sorties archivées de l'afficahge
+        // Exclusion des sorties archivées de l'affichage
         $qb->andWhere('st.status_label != :archived_status')
             ->setParameter('archived_status', 'Archivée');
 
@@ -68,12 +68,14 @@ class SortieRepository extends ServiceEntityRepository
 
         if (!empty($filters['campus'])) {
             $qb->andWhere('o.campus = :campus')
-                ->setParameter('campus', $filters['campus']->getId());
+                ->setParameter('campus', $filters['campus']); // PAS besoin de getId()
         }
 
-        if (!empty($filters['statut'])) {
-            $qb->andWhere('st.id = :status_id')
-                ->setParameter('status_id', $filters['statut']->getId());
+
+        // **Filtre par statut**
+        if (!empty($filters['status'])) {
+            $qb->andWhere('st.id = :statusId')
+                ->setParameter('statusId', $filters['status']->getId());
         }
 
         if (!empty($filters['organisator'])) {
@@ -86,25 +88,23 @@ class SortieRepository extends ServiceEntityRepository
                 ->setParameter('user', $user);
         }
 
+        // **Filtre pour 'not_user'**
+        if (!empty($filters['not_user'])) {
+            $qb->andWhere(':user NOT MEMBER OF s.users')
+                ->setParameter('user', $user);
+        }
+
         if (!empty($filters['place'])) {
             $qb->andWhere('p.id = :place_id')
                 ->setParameter('place_id', $filters['place']->getId());
         }
 
+        if (!empty($filters['past'])) {
+            $qb->andWhere('s.start_datetime < :now')
+                ->setParameter('now', new \DateTime());
+        }
 
         return $qb->orderBy('s.start_datetime', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findOldSortiesForArchiving(\DateTime $dateLimit): array
-    {
-        return $this->createQueryBuilder('s')
-            ->leftJoin('s.status', 'st')
-            ->andWhere('st.status_label IN (:statusCodes)')
-            ->andWhere('s.start_datetime < :dateLimit')
-            ->setParameter('statusCodes', ['Terminée', 'Annulée'])
-            ->setParameter('dateLimit', $dateLimit)
             ->getQuery()
             ->getResult();
     }

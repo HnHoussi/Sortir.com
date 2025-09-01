@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use DateTime;
+
 
 #[Route('/sortie', name: 'sortie')]
 final class SortieController extends AbstractController
@@ -26,34 +26,29 @@ final class SortieController extends AbstractController
     #[Route('', name: '_list')]
     public function list(SortieRepository $sortieRepository, Request $request): Response
     {
-        // Récupère l'utilisateur connecté, ou null si non connecté
         $user = $this->getUser();
 
+        // Création du formulaire de filtre
+        $form = $this->createForm(SortieFilterType::class);
+        $form->handleRequest($request);
+
+        // Récupération des données du formulaire
+        $filters = $form->getData() ?? [];
+
+        // Si l'utilisateur est connecté, on applique les filtres personnalisés
         if ($user) {
-            // Si l'utilisateur est connecté, on procède avec les filtres
-            $form = $this->createForm(SortieFilterType::class);
-            $form->handleRequest($request);
-
-            // Initialise les filtres avec un tableau vide
-            $filters = [];
-
-            if ($form->isSubmitted() && $form->isValid()) {
-                $filters = $form->getData();
-            }
-
-            // Récupère les sorties en fonction des filtres et de l'utilisateur connecté
             $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
         } else {
             // Si l'utilisateur n'est pas connecté, on affiche toutes les sorties
             $sorties = $sortieRepository->findAll();
-            $form = $this->createForm(SortieFilterType::class); // Crée le formulaire pour l'affichage, même si non utilisé
         }
 
         return $this->render('sortie/list.html.twig', [
             'sorties' => $sorties,
-            'form' => $form->createView(),
+            'form' => $form,
         ]);
     }
+
 
     #[Route('/create', name: '_create')]
     public function create(
@@ -83,6 +78,7 @@ final class SortieController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
             $sortie->setOrganisator($user);
+            $sortie->setState(0); // ou une autre valeur par défaut selon ta logique métier
 
             $em->persist($sortie);
 
