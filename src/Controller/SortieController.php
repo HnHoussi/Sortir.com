@@ -111,21 +111,67 @@ final class SortieController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
             $sortie->setOrganizer($user);
-            $sortie->setOrganizer($user);
             // Assigne le campus de l'organisateur comme campus de la sortie
             $sortie->setCampus($user->getCampus());
 
-            $em->persist($sortie);
-
-            $em->flush();
-
-            $this->addFlash('success', 'Sortie créée avec succès !');
+            if ($request->request->has('save')) {
+                $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+                $sortie->setStatus($status);
+                $em->persist($sortie);
+                $em->flush();
+                $this->addFlash('success', 'Sortie sauvegardée en tant que brouillon !');
+            } elseif ($request->request->has('publish')) {
+                $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+                $sortie->setStatus($status);
+                $sortie->setPublicationDate(new \DateTimeImmutable());
+                $em->persist($sortie);
+                $em->flush();
+                $this->addFlash('success', 'Sortie publiée avec succès !');
+            }
 
             return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
         return $this->render('sortie/create.html.twig', [
             'sortie_form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/modify', name: '_modify')]
+    #[IsGranted('ROLE_USER')]
+    public function modify(
+        Sortie $sortie,
+        Request $request,
+        EntityManagerInterface $em,
+        StatusRepository $statusRepository
+    ): Response {
+        // Règle métier : seule la sortie avec le statut 'Créée' peut être modifiée
+        if ($sortie->getOrganizer() !== $this->getUser() || $sortie->getStatus()->getStatusLabel() !== 'Créée') {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas modifier cette sortie.');
+        }
+
+        $form = $this->createForm(SortieType::class, $sortie);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Gère les boutons "Enregistrer" et "Publier"
+            if ($request->request->has('save')) {
+                $em->flush();
+                $this->addFlash('success', 'Sortie modifiée avec succès !');
+            } elseif ($request->request->has('publish')) {
+                $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+                $sortie->setStatus($status);
+                $sortie->setPublicationDate(new \DateTimeImmutable());
+                $em->flush();
+                $this->addFlash('success', 'Sortie modifiée et publiée avec succès !');
+            }
+
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        return $this->render('sortie/modify.html.twig', [
+            'sortie_form' => $form->createView(),
+            'sortie' => $sortie,
         ]);
     }
 
@@ -148,6 +194,28 @@ final class SortieController extends AbstractController
             'is_registration_open' => $isRegistrationOpen,
         ]);
     }
+
+    #[Route('/{id}/publish', name: '_publish')]
+    #[IsGranted('ROLE_USER')]
+    public function publish(
+        Sortie $sortie,
+        EntityManagerInterface $em,
+        StatusRepository $statusRepository
+    ): Response {
+        if ($sortie->getOrganizer() !== $this->getUser() || $sortie->getStatus()->getStatusLabel() !== 'Créée') {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas publier cette sortie.');
+        }
+
+        $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+        $sortie->setStatus($status);
+        $sortie->setPublicationDate(new \DateTimeImmutable());
+        $em->flush();
+
+        $this->addFlash('success', 'La sortie a été publiée avec succès !');
+
+        return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+    }
+
     #[Route('/{id}/register', name: '_register')]
     public function register(Sortie $sortie, EntityManagerInterface $em, MailService $mailService): Response
     {

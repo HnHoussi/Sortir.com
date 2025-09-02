@@ -31,8 +31,9 @@ class SortieFilterType extends AbstractType
                 'placeholder' => 'Toutes les villes',
                 'required' => false,
             ])
-            ->add('lieu', EntityType::class, [
+            ->add('place', EntityType::class, [
                 'class' => Place::class,
+                'label' => 'Lieu',
                 'choice_label' => 'placeName', // correspond au getter getPlaceName()
                 'placeholder' => 'Tous les lieux',
                 'required' => false,

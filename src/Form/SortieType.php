@@ -84,10 +84,11 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Créer la sortie',
-                'attr' => ['class' => 'btn btn-success mt-3 mb-3 rounded-lg w-100']
-            ])
+//SLB : remplacé par enregistrer et publier qui sont dans create twig
+//            ->add('submit', SubmitType::class, [
+//                'label' => 'Créer la sortie',
+//                'attr' => ['class' => 'btn btn-success mt-3 mb-3 rounded-lg w-100']
+//            ])
         ;
     }
 

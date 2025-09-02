@@ -61,6 +61,13 @@
             </table>
         </div>
 
+        {% if is_organizer and sortie.status.statusLabel == 'Créée' %}
+            <a href="{{ path('sortie_modify', {'id': sortie.id}) }}" class="btn btn-info mt-3">Modifier la sortie</a>
+            <form action="{{ path('sortie_publish', {'id': sortie.id}) }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success mt-3">Publier la sortie</button>
+            </form>
+        {% endif %}
+
         {% if is_organizer and sortie.startDatetime > "now"|date and sortie.status.statusLabel in ['Créée', 'Ouverte', 'Fermée'] %}
             <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler la sortie</a>
         {% endif %}
