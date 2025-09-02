@@ -50,53 +50,44 @@ final class UserProfileController extends AbstractController
         ]);
         $form->handleRequest($request);
 
-        // Handle avatar upload
-        $avatarFile = $form->get('avatarFilename')->getData();
-        if ($avatarFile) {
-            $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
-            $safeFilename = $slugger->slug($originalFilename);
-            $newFilename = $safeFilename.'-'.uniqid().'.'.$avatarFile->guessExtension();
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Handle avatar upload
+            $avatarFile = $form->get('avatarFilename')->getData();
+            if ($avatarFile) {
+                $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$avatarFile->guessExtension();
 
-            try {
-                $avatarFile->move(
-                    $this->getParameter('avatars_directory'), // define this parameter in services.yaml
-                    $newFilename
-                );
-            } catch (FileException $e) {
-                $this->addFlash('error', 'Impossible de télécharger le fichier.');
+                try {
+                    $avatarFile->move($this->getParameter('avatars_directory'), $newFilename);
+                    $user->setAvatarFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Impossible de télécharger le fichier.');
+                }
             }
 
-            // Update the User entity
-            $user->setAvatarFilename($newFilename);
-        }
-
-        if ($form->isSubmitted() && $form->isValid()) {
+            // Handle password change
             $newPassword = $form->get('newPassword')->getData();
             $oldPassword = $form->get('oldPassword')->getData();
-
-            // If user wants to change password, validate old password
             if ($newPassword) {
                 if (!$oldPassword || !$passwordHasher->isPasswordValid($user, $oldPassword)) {
                     $form->get('oldPassword')->addError(new FormError('Le mot de passe actuel est incorrect.'));
                 } else {
-                    $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
-                    $user->setPassword($hashedPassword);
+                    $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
                 }
             }
 
-            // Flush only if no new errors were added
-            if ($form->isValid()) {
-                $entityManager->flush();
-                $this->addFlash('success', 'Profil mis à jour avec succès !');
-                return $this->redirectToRoute('user_profile_details');
-            }
+            $entityManager->flush();
+            $this->addFlash('success', 'Profil mis à jour avec succès !');
+
+            return $this->redirectToRoute('user_profile_details');
         }
 
+        // If the form is invalid, DO NOT flush. The user object in the session remains valid.
         return $this->render('user_profile/edit-profile.html.twig', [
             'edit_profil_form' => $form->createView(),
             'editedUser' => $user,
         ]);
+
     }
-
-
 }

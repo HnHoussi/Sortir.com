@@ -8,6 +8,7 @@ use App\Repository\UserRepository;
 use App\Service\AnonymizerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -51,7 +52,7 @@ final class UserController extends AbstractController
 
     //Add user manually by admin
     #[Route('/admin/user/add', name: 'admin_user_add')]
-    public function adminAddUser(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    public function adminAddUserManually(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -66,12 +67,13 @@ final class UserController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
+            // Set role
             $roles = $form->get('roles')->getData();
             $user->setRoles([$roles]);
 
-            // Password
-            $plainPassword = $form->get('plainPassword')->getData();
-            $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
+            // Set default password
+            $defaultPassword = 'Password 1'; // <-- default password
+            $hashedPassword = $passwordHasher->hashPassword($user, $defaultPassword);
             $user->setPassword($hashedPassword);
 
             // Avatar upload
@@ -97,9 +99,62 @@ final class UserController extends AbstractController
         }
 
         return $this->render('/user/add-user.html.twig', [
-            'form' => $form
+            'form' => $form->createView()
         ]);
     }
+
+    //Add multiple users by admin via CSV
+    #[Route('/admin/user/import', name: 'admin_user_import')]
+    public function adminImportUsers(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $form = $this->createFormBuilder()
+            ->add('CsvFile', FileType::class, [
+                'label' => 'Fichier CSV',
+                'mapped' => false,
+                'required' => true,
+                'attr' => ['accept' => '.csv']
+            ])
+            ->getForm();
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $csvFile = $form->get('CsvFile')->getData();
+
+            if($csvFile) {
+                $filePath = $csvFile->getRealPath();
+                $handle = fopen($filePath, 'r');
+                $header = fgetcsv($handle);
+
+                while (($data = fgetcsv($handle)) !== false) {
+                    $user = new User();
+                    $user->setEmail($data[0]);
+                    $user->setFirstName($data[1]);
+                    $user->setLastName($data[2]);
+                    $user->setPhone($data[3]);
+                    $user->setRoles([$data[4]]); // Assuming roles are provided in the CSV
+
+                    // Set default password
+                    $defaultPassword = 'Password 1'; // <-- default password
+                    $hashedPassword = $passwordHasher->hashPassword($user, $defaultPassword);
+                    $user->setPassword($hashedPassword);
+
+                    $em->persist($user);
+                }
+                fclose($handle);
+                $em->flush();
+
+                $this->addFlash('success', 'Utilisateurs importés avec succès');
+                return $this->redirectToRoute('admin_users_list');
+            }
+        }
+        return $this->render('/user/import-users.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
 
     // edit existing user
     #[Route('/admin/user/{id}/edit', name: 'admin_edit_user', requirements: ['id' => '\d+'])]
@@ -175,7 +230,7 @@ final class UserController extends AbstractController
 
         $anonymizer->anonymize($user);
         $em->flush();
-        $this->addFlash('success', 'Utilisateur supprimé et anonymisé avec succès.');
+        $this->addFlash('success', 'Utilisateur supprimé avec succès.');
         return $this->redirectToRoute('admin_users_list');
     }
 

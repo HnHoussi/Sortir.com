@@ -1,13 +1,41 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Accueil{% endblock %}
 
 {% block body %}
-    <h1>BONJOUR {{ app.user ? app.user.firstName : '' }}!</h1>
+    <div class="container mt-3 text-center w-75">
+        {% if app.user %}
+            <h1 class="mb-4">Bienvenue, {{ app.user.firstName }} 👋</h1>
+            <p class="lead">Vous êtes connecté. Accédez dès maintenant aux événements et fonctionnalités de votre site sortir.com</p>
+        {% else %}
+            <h1 class="mb-4">Bienvenue sur le portail étudiant 🎓</h1>
+            <p class="lead">Connectez-vous pour accéder aux événements, à votre profil et aux outils réservés aux étudiants.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary mt-3">Se connecter</a>
+        {% endif %}
+            <!-- Bootstrap Carousel -->
+            <div id="schoolCarousel" class="carousel slide mt-5" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="{{ asset('images/carousel1.jpg') }}" class="d-block w-100 rounded" alt="Photo 1" style="height: 30rem; width: auto">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{{ asset('images/carousel2.jpg') }}" class="d-block w-100 rounded" alt="Photo 2" style="height: 30rem; width: auto">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{{ asset('images/carousel3.jpg') }}" class="d-block w-100 rounded" alt="Photo 3" style="height: 30rem; width: auto">
+                    </div>
+                </div>
 
-    {% if app.user %}
-        <p>Vous êtes connecté... ENJOY</p>
-    {% else %}
-        <p>Se connecter pour accéder à votre compte</p>
-    {% endif %}
+                <!-- Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#schoolCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Précédent</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#schoolCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Suivant</span>
+                </button>
+            </div>
+
+    </div>
 {% endblock %}

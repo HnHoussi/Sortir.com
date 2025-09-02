@@ -15,7 +15,7 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             {# Avatar on the left #}
-                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="col-md-3 text-center mb-3 mb-md-0">
                                 {% if user.avatarFilename %}
                                     <img src="{{ asset('uploads/avatars/' ~ user.avatarFilename) }}"
                                          alt="Avatar" class="img-fluid rounded-circle" style="max-width:120px;">
@@ -26,21 +26,27 @@
                             </div>
 
                             {# User info on the right #}
-                            <div class="col-md-8">
+                            <div class="col-md-9">
                                 <dl class="row mb-0">
-                                    <dt class="col-5 text-end">Email :</dt>
+                                    <dt class="col-5 text-end">Email</dt>
                                     <dd class="col-7 text-start">{{ user.email }}</dd>
 
-                                    <dt class="col-5 text-end">Pseudo :</dt>
+                                    <dt class="col-5 text-end">Pseudo</dt>
                                     <dd class="col-7 text-start">{{ user.pseudo }}</dd>
 
-                                    <dt class="col-5 text-end">Téléphone :</dt>
-                                    <dd class="col-7 text-start">{{ user.phone ?: '—' }}</dd>
+                                    <dt class="col-5 text-end">Téléphone</dt>
+                                    <dd class="col-7 text-start">{{ user.phone ?: 'Non renseigné' }}</dd>
 
-                                    <dt class="col-5 text-end">Campus :</dt>
-                                    <dd class="col-7 text-start">{{ user.campus ? user.campus.campusName : '—' }}</dd>
+                                    <dt class="col-5 text-end">Campus</dt>
+                                    <dd class="col-7 text-start">{{ user.campus.campusName}}</dd>
 
-                                    <dt class="col-5 text-end">Rôle :</dt>
+                                    <dt class="col-5 text-end">Date de création du compte</dt>
+                                    <dd class="col-7 text-start">{{ user.createdAt|date('d/m/Y H:i')}}</dd>
+
+                                    <dt class="col-5 text-end">Dernière modification</dt>
+                                    <dd class="col-7 text-start">{{ user.updatedAt|date('d/m/Y H:i')}}</dd>
+
+                                    <dt class="col-5 text-end">Rôle</dt>
                                     <dd class="col-7 text-start">
                                         {% if 'ROLE_ADMIN' in user.roles %}
                                             <span class="badge bg-danger">Admin</span>
@@ -72,4 +78,5 @@
             </div>
         </div>
     </div>
+
 {% endblock %}

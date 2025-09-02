@@ -3,16 +3,17 @@
 {% block title %}Connexion{% endblock %}
 
 {% block body %}
-    <form method="post">
+    <form method="post" novalidate>
         {% if error %}
-            <div class="alert alert-danger">{{ error.message }}</div>
-        {% endif %}
-
-        {% if app.user %}
-            <div class="mb-3">
-                Vous êtes connecté en tant que {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Se déconnecter</a>
+            <div class="alert alert-danger">
+                {% if error.messageKey == 'Invalid credentials.' %}
+                    Identifiants incorrects. Veuillez réessayer.
+                {% else %}
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                {% endif %}
             </div>
         {% endif %}
+
 
         <h1 class="h3 mb-3 font-weight-normal">Veuillez vous connecter</h1>
         <label for="username">Email</label>
