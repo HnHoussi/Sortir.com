@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Campus;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
@@ -16,6 +17,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 #[Route('/profil')]
 final class UserController extends AbstractController
 {
@@ -110,7 +114,8 @@ final class UserController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        ValidatorInterface $validator
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -130,8 +135,7 @@ final class UserController extends AbstractController
             $csvFile = $form->get('CsvFile')->getData();
 
             if ($csvFile) {
-                // Optional: check MIME type for extra security
-                if ($csvFile->getMimeType() !== 'text/plain' && $csvFile->getMimeType() !== 'text/csv') {
+                if (!in_array($csvFile->getMimeType(), ['text/plain', 'text/csv', 'application/vnd.ms-excel'])) {
                     $this->addFlash('danger', 'Le fichier doit être un CSV valide.');
                     return $this->redirectToRoute('admin_user_import');
                 }
@@ -139,7 +143,7 @@ final class UserController extends AbstractController
                 $filePath = $csvFile->getRealPath();
 
                 if (($handle = fopen($filePath, 'r')) !== false) {
-                    fgetcsv($handle); // skip header
+                    fgetcsv($handle); // 🔥 skip header
                     $lineNumber = 1;
                     $successCount = 0;
                     $errors = [];
@@ -147,71 +151,77 @@ final class UserController extends AbstractController
                     while (($data = fgetcsv($handle)) !== false) {
                         $lineNumber++;
 
-                        if (count($data) < 5) {
-                            $errors[] = "Ligne $lineNumber: données incomplètes.";
+                        if (count($data) < 7) {
+                            $errors[] = "Ligne $lineNumber : données incomplètes (7 colonnes attendues).";
                             continue;
                         }
 
-                        [$email, $firstName, $lastName, $phone, $role] = $data;
+                        [$campusName, $email, $firstName, $lastName, $pseudo, $phone, $role] = $data;
 
-                        // Validate email
-                        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                            $errors[] = "Ligne $lineNumber: email '$email' invalide.";
+                        // Vérification campus
+                        $campus = $em->getRepository(Campus::class)->findOneBy(['campus_name' => $campusName]);
+                        if (!$campus) {
+                            $errors[] = "Ligne $lineNumber : campus '$campusName' introuvable.";
                             continue;
                         }
 
-                        // Validate role
+                        // Vérification rôle
                         if (!in_array($role, ['ROLE_USER', 'ROLE_ADMIN'])) {
-                            $errors[] = "Ligne $lineNumber: rôle '$role' invalide.";
+                            $errors[] = "Ligne $lineNumber : rôle '$role' invalide.";
                             continue;
                         }
 
-                        // Optional: phone validation (digits only)
-                        if (!preg_match('/^\+?[0-9]{6,15}$/', $phone)) {
-                            $errors[] = "Ligne $lineNumber: numéro de téléphone '$phone' invalide.";
-                            continue;
-                        }
-
-                        // Skip existing users
+                        // Vérification doublon email
                         if ($userRepository->findOneBy(['email' => $email])) {
-                            $errors[] = "Ligne $lineNumber: utilisateur '$email' existe déjà.";
+                            $errors[] = "Ligne $lineNumber : utilisateur '$email' existe déjà.";
                             continue;
                         }
 
-                        // Create user
+                        // Création user
                         $user = new User();
+                        $user->setCampus($campus);
                         $user->setEmail($email);
                         $user->setFirstName($firstName);
                         $user->setLastName($lastName);
+                        $user->setPseudo($pseudo);
                         $user->setPhone($phone);
                         $user->setRoles([$role]);
 
-                        // Random secure password
-                        $defaultPassword = 'Password 1'; // <-- default password
+                        // Password par défaut
+                        $defaultPassword = 'Password 1';
                         $hashedPassword = $passwordHasher->hashPassword($user, $defaultPassword);
                         $user->setPassword($hashedPassword);
 
+                        // 🔥 Validation avec les contraintes de l’entité User
+                        $violations = $validator->validate($user);
+
+                        if (count($violations) > 0) {
+                            foreach ($violations as $violation) {
+                                /** @var ConstraintViolation $violation */
+                                $errors[] = "Ligne $lineNumber : " . $violation->getPropertyPath() . " - " . $violation->getMessage();
+                            }
+                            continue;
+                        }
+
+                        // Ajout si tout est OK
                         $em->persist($user);
                         $successCount++;
                     }
 
                     fclose($handle);
 
-                    // Flush only after processing all valid users
+                    // Sauvegarde finale
                     $em->flush();
 
-                    // Flash messages
                     if ($successCount > 0) {
                         $this->addFlash('success', "$successCount utilisateur(s) importé(s) avec succès.");
                     }
 
-                    if ($errors) {
-                        foreach ($errors as $error) {
-                            $this->addFlash('warning', $error);
-                        }
+                    foreach ($errors as $error) {
+                        $this->addFlash('warning', $error);
                     }
 
-                    return $this->redirectToRoute('admin_users_list');
+                    return $this->redirectToRoute('admin_user_import');
                 } else {
                     $this->addFlash('danger', 'Impossible d’ouvrir le fichier CSV.');
                 }
@@ -222,6 +232,7 @@ final class UserController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
 
 
     // edit existing user

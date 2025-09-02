@@ -6,13 +6,15 @@
     <div class="container my-4">
         <h1 class="mb-4">Importer des utilisateurs via CSV</h1>
 
-        {# Instructions and CSV example #}
+        {# Instructions et exemple CSV #}
         <div class="mb-4">
             <p>Le fichier CSV doit contenir les colonnes suivantes dans cet ordre :</p>
             <ul>
+                <li><strong>Campus</strong></li>
                 <li><strong>Email</strong></li>
                 <li><strong>Prénom</strong></li>
                 <li><strong>Nom</strong></li>
+                <li><strong>Pseudo</strong></li>
                 <li><strong>Téléphone</strong></li>
                 <li><strong>Rôle</strong> (ROLE_USER ou ROLE_ADMIN)</li>
             </ul>
@@ -21,25 +23,29 @@
             <table class="table table-bordered">
                 <thead>
                 <tr>
+                    <th>Campus</th>
                     <th>Email</th>
                     <th>Prénom</th>
                     <th>Nom</th>
+                    <th>Pseudo</th>
                     <th>Téléphone (optionnel)</th>
                     <th>Rôle</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
+                    <td>ENI Saint-Herblain</td>
                     <td>john.doe@campus-eni.fr</td>
                     <td>John</td>
                     <td>Doe</td>
+                    <td>johnd</td>
                     <td>0612345678</td>
                     <td>ROLE_USER</td>
                 </tr>
                 </tbody>
             </table>
 
-            <a href="{{ asset('sample_users.csv') }}" class="btn btn-outline-secondary mb-3" download>
+            <a href="{{ asset('users-example.csv') }}" class="btn btn-outline-secondary mb-3" download>
                 Télécharger le CSV modèle
             </a>
         </div>
