@@ -29,16 +29,7 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('publicationDate', DateTimeType::class, [
-                'label' => 'Date de publication',
-                'html5' => true,
-                'widget' => 'single_text',
-                'attr' => [
-                    'class' => 'form-control rounded-lg'
-                ],
-                'required' => false,
-            ])
-            ->add('start_datetime', DateTimeType::class, [
+            ->add('startDatetime', DateTimeType::class, [
                 'label' => 'Date et heure de la sortie',
                 'html5' => true,
                 'widget' => 'single_text',
@@ -53,7 +44,7 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('registration_deadline', DateTimeType::class, [
+            ->add('registrationDeadline', DateTimeType::class, [
                 'label' => "Date limite d'inscription",
                 'html5' => true,
                 'widget' => 'single_text',
@@ -61,7 +52,7 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('max_registrations', NumberType::class, [
+            ->add('maxRegistrations', NumberType::class, [
                 'label' => "Nombre maximum d'inscriptions",
                 'attr' => [
                     'placeholder' => 'ex: 10',
@@ -75,7 +66,7 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('photo_url', TextType::class, [
+            ->add('photoUrl', TextType::class, [
                 'label' => 'URL de la photo',
                 'required' => false,
                 'attr' => [

@@ -103,7 +103,7 @@ class SortieRepository extends ServiceEntityRepository
         }
 
         if (!empty($filters['past'])) {
-            $qb->andWhere('s.start_datetime < :now')
+            $qb->andWhere('s.startDatetime < :now')
                 ->setParameter('now', new \DateTime());
         }
 
@@ -125,31 +125,5 @@ class SortieRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    // Automatisation du passage du statut "créée" à "ouverte"
-    public function findSortiesToOpen(DateTimeImmutable $now): array
-    {
-        return $this->createQueryBuilder('s')
-            ->leftJoin('s.status', 'st')
-            ->andWhere('st.status_label = :created_status')
-            ->andWhere('s.publicationDate IS NOT NULL')
-            ->andWhere('s.publicationDate <= :now')
-            ->setParameter('created_status', 'Créée')
-            ->setParameter('now', $now)
-            ->getQuery()
-            ->getResult();
-    }
-
-    // Automatisation du passage du statut "ouverte" à "fermée"
-    public function findSortiesToClose(\DateTimeImmutable $now): array
-    {
-        return $this->createQueryBuilder('s')
-            ->leftJoin('s.status', 'st')
-            ->andWhere('st.status_label = :open_status')
-            ->andWhere('s.registrationDeadline <= :now')
-            ->setParameter('open_status', 'Ouverte')
-            ->setParameter('now', $now)
-            ->getQuery()
-            ->getResult();
-    }
 
 }
