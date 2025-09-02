@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Importer des utilisateurs{% endblock %}
+
+{% block body %}
+    <div class="container my-4">
+        <h1 class="mb-4">Importer des utilisateurs via CSV</h1>
+
+        {# Instructions and CSV example #}
+        <div class="mb-4">
+            <p>Le fichier CSV doit contenir les colonnes suivantes dans cet ordre :</p>
+            <ul>
+                <li><strong>Email</strong></li>
+                <li><strong>Prénom</strong></li>
+                <li><strong>Nom</strong></li>
+                <li><strong>Téléphone</strong></li>
+                <li><strong>Rôle</strong> (ROLE_USER ou ROLE_ADMIN)</li>
+            </ul>
+
+            <p>Exemple :</p>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Téléphone (optionnel)</th>
+                    <th>Rôle</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>john.doe@campus-eni.fr</td>
+                    <td>John</td>
+                    <td>Doe</td>
+                    <td>0612345678</td>
+                    <td>ROLE_USER</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <a href="{{ asset('sample_users.csv') }}" class="btn btn-outline-secondary mb-3" download>
+                Télécharger le CSV modèle
+            </a>
+        </div>
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{
+                label == 'success' ? 'success' : (label == 'warning' ? 'warning' : 'danger')
+                }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+        <div class="mb-3">
+            {{ form_label(form.CsvFile) }}
+            {{ form_widget(form.CsvFile, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.CsvFile) }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Importer</button>
+        <a href="{{ path('admin_users_list') }}" class="btn btn-secondary">Retour à la liste</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -105,8 +106,12 @@ final class UserController extends AbstractController
 
     //Add multiple users by admin via CSV
     #[Route('/admin/user/import', name: 'admin_user_import')]
-    public function adminImportUsers(Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
-    {
+    public function adminImportUsers(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher,
+        UserRepository $userRepository
+    ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $form = $this->createFormBuilder()
@@ -114,44 +119,107 @@ final class UserController extends AbstractController
                 'label' => 'Fichier CSV',
                 'mapped' => false,
                 'required' => true,
-                'attr' => ['accept' => '.csv']
+                'attr' => ['accept' => '.csv'],
             ])
             ->getForm();
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $csvFile */
             $csvFile = $form->get('CsvFile')->getData();
 
-            if($csvFile) {
-                $filePath = $csvFile->getRealPath();
-                $handle = fopen($filePath, 'r');
-                $header = fgetcsv($handle);
-
-                while (($data = fgetcsv($handle)) !== false) {
-                    $user = new User();
-                    $user->setEmail($data[0]);
-                    $user->setFirstName($data[1]);
-                    $user->setLastName($data[2]);
-                    $user->setPhone($data[3]);
-                    $user->setRoles([$data[4]]); // Assuming roles are provided in the CSV
-
-                    // Set default password
-                    $defaultPassword = 'Password 1'; // <-- default password
-                    $hashedPassword = $passwordHasher->hashPassword($user, $defaultPassword);
-                    $user->setPassword($hashedPassword);
-
-                    $em->persist($user);
+            if ($csvFile) {
+                // Optional: check MIME type for extra security
+                if ($csvFile->getMimeType() !== 'text/plain' && $csvFile->getMimeType() !== 'text/csv') {
+                    $this->addFlash('danger', 'Le fichier doit être un CSV valide.');
+                    return $this->redirectToRoute('admin_user_import');
                 }
-                fclose($handle);
-                $em->flush();
 
-                $this->addFlash('success', 'Utilisateurs importés avec succès');
-                return $this->redirectToRoute('admin_users_list');
+                $filePath = $csvFile->getRealPath();
+
+                if (($handle = fopen($filePath, 'r')) !== false) {
+                    fgetcsv($handle); // skip header
+                    $lineNumber = 1;
+                    $successCount = 0;
+                    $errors = [];
+
+                    while (($data = fgetcsv($handle)) !== false) {
+                        $lineNumber++;
+
+                        if (count($data) < 5) {
+                            $errors[] = "Ligne $lineNumber: données incomplètes.";
+                            continue;
+                        }
+
+                        [$email, $firstName, $lastName, $phone, $role] = $data;
+
+                        // Validate email
+                        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                            $errors[] = "Ligne $lineNumber: email '$email' invalide.";
+                            continue;
+                        }
+
+                        // Validate role
+                        if (!in_array($role, ['ROLE_USER', 'ROLE_ADMIN'])) {
+                            $errors[] = "Ligne $lineNumber: rôle '$role' invalide.";
+                            continue;
+                        }
+
+                        // Optional: phone validation (digits only)
+                        if (!preg_match('/^\+?[0-9]{6,15}$/', $phone)) {
+                            $errors[] = "Ligne $lineNumber: numéro de téléphone '$phone' invalide.";
+                            continue;
+                        }
+
+                        // Skip existing users
+                        if ($userRepository->findOneBy(['email' => $email])) {
+                            $errors[] = "Ligne $lineNumber: utilisateur '$email' existe déjà.";
+                            continue;
+                        }
+
+                        // Create user
+                        $user = new User();
+                        $user->setEmail($email);
+                        $user->setFirstName($firstName);
+                        $user->setLastName($lastName);
+                        $user->setPhone($phone);
+                        $user->setRoles([$role]);
+
+                        // Random secure password
+                        $defaultPassword = 'Password 1'; // <-- default password
+                        $hashedPassword = $passwordHasher->hashPassword($user, $defaultPassword);
+                        $user->setPassword($hashedPassword);
+
+                        $em->persist($user);
+                        $successCount++;
+                    }
+
+                    fclose($handle);
+
+                    // Flush only after processing all valid users
+                    $em->flush();
+
+                    // Flash messages
+                    if ($successCount > 0) {
+                        $this->addFlash('success', "$successCount utilisateur(s) importé(s) avec succès.");
+                    }
+
+                    if ($errors) {
+                        foreach ($errors as $error) {
+                            $this->addFlash('warning', $error);
+                        }
+                    }
+
+                    return $this->redirectToRoute('admin_users_list');
+                } else {
+                    $this->addFlash('danger', 'Impossible d’ouvrir le fichier CSV.');
+                }
             }
         }
+
         return $this->render('/user/import-users.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(),
         ]);
     }
 
