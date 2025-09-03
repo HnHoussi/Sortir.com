@@ -98,14 +98,6 @@ final class SortieController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
-
-            if (!$status) {
-                throw new \Exception('Le statut par défaut "Créée" n\'a pas été trouvé.');
-            }
-
-            // Assigne le statut à la sortie
-            $sortie->setStatus($status);
 
             // Assigne l'utilisateur courant comme organisateur
             /** @var User $user */
