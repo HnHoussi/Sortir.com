@@ -142,4 +142,24 @@ class SortieRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findUpcomingSorties(): array
+    {
+        $targetTime = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $targetTime->modify('+48 hours');
+
+        $lowerBound = (clone $targetTime)->modify('-10 minutes');
+        $upperBound = (clone $targetTime)->modify('+10 minutes');
+
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.status', 'st')
+            ->andWhere('s.startDatetime BETWEEN :lower AND :upper')
+            ->andWhere('st.status_label IN (:open_statuses)')
+            ->setParameter('lower', $lowerBound)
+            ->setParameter('upper', $upperBound)
+            ->setParameter('open_statuses', ['Ouverte', 'Fermée']) // attention à la casse
+            ->getQuery()
+            ->getResult();
+
+    }
+
 }
