@@ -28,7 +28,7 @@
                 <div class="col-md-6 col-lg-4 mb-4">
                     <a href="{{ path('sortie_detail', {'id': sortie.id}) }}" class="text-decoration-none">
                         <div class="card h-100 shadow-sm text-white border-0"
-                             style="background-image: url('{{ sortie.photoUrl ? asset(sortie.photoUrl) : asset('images/default.jpg') }}');
+                             style="background-image: url('{{ sortie.photoUrl ? asset('uploads/pictures/sorties/' ~ sortie.photoUrl) : asset('images/default.jpg') }}');
                                  background-size: cover;
                                  background-position: center;">
                             <div class="card-body bg-dark bg-opacity-50 d-flex flex-column">

@@ -1,6 +1,10 @@
 # see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
+    validation:
+        enable_attributes: true
+        auto_mapping:
+            App\Entity\: []
 
     # Note that the session will be started ONLY if you read or write from it.
     session: true

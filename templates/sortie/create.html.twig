@@ -4,7 +4,7 @@
 {% form_theme sortie_form 'bootstrap_5_layout.html.twig' %}
 
 {% block body %}
-    <div class="container mt-5">
+    <div class="container mt-5 mb-5">
         <h1 class="text-center mb-4">✨ Créer une nouvelle sortie</h1>
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
@@ -19,15 +19,13 @@
                     {{ form_row(sortie_form.description) }}
                     {{ form_row(sortie_form.photoUrl) }}
 
-                    <div class="mb-3">
-                        {{ form_label(sortie_form.place) }}
-                        <div class="input-group">
-                            {{ form_widget(sortie_form.place, {'attr': {'class': 'form-select'}}) }}
-                            <a href="{{ path('app_place_new') }}" class="btn btn-primary" style="margin-left: 10px;">
-                                Ajouter un lieu
-                            </a>
-                        </div>
-                        {{ form_errors(sortie_form.place) }}
+
+                    <div class="d-flex align-items-center justify-content-between">
+                        {{ form_row(sortie_form.place) }}
+                        <button type="button" class="btn btn-outline-primary ms-2" data-bs-toggle="modal"
+                                data-bs-target="#addPlaceModal">
+                            Ajouter un lieu
+                        </button>
                     </div>
 
                     <div class="d-flex justify-content-between mt-3">
@@ -35,9 +33,48 @@
                         <button type="submit" name="publish" class="btn btn-success w-48">Publier</button>
                     </div>
 
+
                     {{ form_end(sortie_form) }}
+
+                </div>
+            </div>
+
+            {# Modal Bootstrap #}
+            <div class="modal fade" id="addPlaceModal" tabindex="-1" aria-labelledby="addPlaceModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <form id="placeForm" class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addPlaceModalLabel">Ajouter un nouveau lieu</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Fermer"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="place_name" class="form-label">Nom du lieu</label>
+                                <input type="text" class="form-control" id="place_name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="place_city" class="form-label">Ville</label>
+                                <select class="form-select" id="place_city" name="city" required>
+                                    {% for city in cities %}
+                                        <option value="{{ city.id }}">{{ city.cityName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="place_address" class="form-label">Adresse</label>
+                                <input type="text" class="form-control" id="place_address" name="address" required>
+                            </div>
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
 {% endblock %}
