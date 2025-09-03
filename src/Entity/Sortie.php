@@ -73,9 +73,6 @@ class Sortie
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'sortiesInscrit')]
     private Collection $users;
 
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $publicationDate = null;
-
     #[ORM\ManyToOne(inversedBy: 'sorties')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Campus $campus = null;
@@ -262,15 +259,4 @@ class Sortie
         return $this;
     }
 
-    public function getPublicationDate(): ?\DateTimeImmutable
-    {
-        return $this->publicationDate;
-    }
-
-    public function setPublicationDate(?\DateTimeImmutable $publicationDate): static
-    {
-        $this->publicationDate = $publicationDate;
-
-        return $this;
-    }
 }
