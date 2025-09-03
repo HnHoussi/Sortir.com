@@ -15,7 +15,7 @@ class AnonymizerService
         // Anonymize personal data
         $user->setFirstName('Anonyme');
         $user->setLastName('');
-        $user->setEmail('anonyme-' . $user->getId() . '@example.com'); // unique fake email
+        $user->setEmail('anonyme-' . $user->getId() . '@deleted-user.fr'); // unique fake email
         $user->setPhone(null);
         $user->setPseudo('Anonyme-' . $user->getId());
 

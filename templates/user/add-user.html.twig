@@ -21,6 +21,10 @@
                     {{ form_row(form.roles) }}
                 {% endif %}
 
+                {% if form.avatarFilename is defined %}
+                    {{ form_row(form.avatarFilename) }}
+                {% endif %}
+
                 {% if form.plainPassword is defined %}
                     {{ form_row(form.plainPassword.first) }}
                     {{ form_row(form.plainPassword.second) }}
@@ -40,7 +44,6 @@
                     <a href="{{ path('admin_users_list') }}" class="btn btn-secondary ms-2">Annuler</a>
                 </div>
                 {{ form_end(form) }}
-
 
             </div>
         </div>

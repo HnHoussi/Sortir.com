@@ -14,8 +14,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-#[UniqueEntity('email', message: 'Cet email est déjà utilisé.')]
-#[UniqueEntity('pseudo', message: 'Ce pseudo est déjà utilisé.')]
+#[UniqueEntity('email', message: 'Cet email est déjà utilisé.', errorPath: 'email', ignoreNull: true)]
+#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_PSEUDO', fields: ['pseudo'])]
+#[UniqueEntity('pseudo', message: 'Ce pseudo est déjà utilisé.', errorPath: 'pseudo', ignoreNull: true)]
 #[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -24,36 +25,64 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180, unique: true, nullable: false)]
     #[Assert\NotBlank(message: "L'adresse email est obligatoire.")]
     #[Assert\Email(message: "L'adresse email n'est pas valide.")]
     #[Assert\Regex(pattern: "/@campus-eni\.fr$/", message: "L'adresse email doit se terminer par @campus-eni.fr")]
-    private string $email;
+    private ?string $email;
 
     #[ORM\Column]
     private array $roles = [];
 
-    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.", groups: ['user_create'])]
-    #[Assert\Length(min: 8, minMessage: "Le mot de passe doit faire au moins {{ limit }} caractères.", groups: ['user_create'])]
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.")]
+    #[Assert\Length(min: 8, minMessage: "Le mot de passe doit faire au moins {{ limit }} caractères.")]
+    #[Assert\Regex(
+        pattern: "/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$/",
+        message: "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial."
+    )]
     private ?string $password;
 
-    #[ORM\Column(length: 30, unique: true)]
+    #[ORM\Column(length: 30, unique: true, nullable: false)]
     #[Assert\NotBlank(message: "Le pseudo est obligatoire.")]
-    #[Assert\Length(max: 30, maxMessage: "Le pseudo ne peut pas dépasser {{ limit }} caractères.")]
-    #[Assert\Regex(pattern: '/^[A-Za-z0-9._-]+$/', message: "Le pseudo ne peut contenir que lettres, chiffres, points, tirets et underscores.")]
-    private string $pseudo;
+    #[Assert\Length(
+        min: 3,
+        max: 30,
+        minMessage: "Le pseudo doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le pseudo ne peut pas dépasser {{ limit }} caractères.")]
+    #[Assert\Regex(pattern: '/^[\p{L}0-9._-]+$/u', message: "Le pseudo ne peut contenir que lettres, chiffres, points, tirets et underscores.")]
+    private ?string $pseudo;
 
-    #[ORM\Column(length: 30)]
+    #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: "Le nom est obligatoire.")]
+    #[Assert\Regex(
+        pattern: "/^[A-Za-zÀ-ÖØ-öø-ÿ'-]+(?: [A-Za-zÀ-ÖØ-öø-ÿ'-]+)*$/",
+        message: "Le nom contient des caractères invalides."
+    )]
+    #[Assert\Length(
+        min: 2,
+        max: 50,
+        minMessage: "Le nom doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le nom ne peut pas dépasser {{ limit }} caractères."
+    )]
     private string $lastName;
 
-    #[ORM\Column(length: 30)]
+    #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: "Le prénom est obligatoire.")]
+    #[Assert\Regex(
+        pattern: "/^[A-Za-zÀ-ÖØ-öø-ÿ'-]+(?: [A-Za-zÀ-ÖØ-öø-ÿ'-]+)*$/",
+        message: "Le prénom contient des caractères invalides."
+    )]
+    #[Assert\Length(
+        min: 2,
+        max: 50,
+        minMessage: "Le prénom doit contenir au moins {{ limit }} caractères.",
+        maxMessage: "Le prénom ne peut pas dépasser {{ limit }} caractères."
+    )]
     private string $firstName;
 
-    #[ORM\Column(length: 20, nullable: true)]
-    #[Assert\Regex(pattern: '/^\+?[0-9\s-]{6,20}$/', message: "Le numéro de téléphone n'est pas valide.")]
+    #[ORM\Column(length: 10, nullable: true)]
+    #[Assert\Regex(pattern: '/^0[67]\d{8}$/', message: "Le numéro de téléphone doit commencer par 06 ou 07 et contenir 10 chiffres sans espaces.")]
     private ?string $phone = null;
 
     #[ORM\Column]
@@ -76,6 +105,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $avatarFilename = null;
+
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
@@ -93,7 +125,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(?string $email): static
     {
         $this->email = trim($email);
 
@@ -212,18 +244,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-//    public function isAdministrator(): ?bool
-//    {
-//        return $this->administrator;
-//    }
-//
-//    public function setAdministrator(bool $administrator): static
-//    {
-//        $this->administrator = $administrator;
-//
-//        return $this;
-//    }
-
     public function isActive(): bool
     {
         return $this->isActive;
@@ -319,6 +339,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $sortiesInscrit->removeUser($this);
         }
 
+        return $this;
+    }
+
+    public function getAvatarFilename(): ?string
+    {
+        return $this->avatarFilename;
+    }
+
+    public function setAvatarFilename(?string $avatarFilename): static
+    {
+        $this->avatarFilename = $avatarFilename;
         return $this;
     }
 

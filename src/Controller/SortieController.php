@@ -19,9 +19,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-
+use DateTime;
 
 #[Route('/sortie', name: 'sortie')]
+#[IsGranted('ROLE_USER')]
 final class SortieController extends AbstractController
 {
 //    SLB : modif de la fonction pour que l'affichage par défaut, sans utiliser de filtre, exclue les sorties archivées de la vue

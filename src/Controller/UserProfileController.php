@@ -7,11 +7,13 @@ use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[IsGranted('ROLE_USER')]
 final class UserProfileController extends AbstractController
@@ -31,6 +33,7 @@ final class UserProfileController extends AbstractController
 
     #[Route('/my-profile/edit', name: 'user_profile_edit')]
     public function editProfile(
+        SluggerInterface $slugger,
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
@@ -48,32 +51,43 @@ final class UserProfileController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Handle avatar upload
+            $avatarFile = $form->get('avatarFilename')->getData();
+            if ($avatarFile) {
+                $originalFilename = pathinfo($avatarFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$avatarFile->guessExtension();
+
+                try {
+                    $avatarFile->move($this->getParameter('avatars_directory'), $newFilename);
+                    $user->setAvatarFilename($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Impossible de télécharger le fichier.');
+                }
+            }
+
+            // Handle password change
             $newPassword = $form->get('newPassword')->getData();
             $oldPassword = $form->get('oldPassword')->getData();
-
-            // If user wants to change password, validate old password
             if ($newPassword) {
                 if (!$oldPassword || !$passwordHasher->isPasswordValid($user, $oldPassword)) {
                     $form->get('oldPassword')->addError(new FormError('Le mot de passe actuel est incorrect.'));
                 } else {
-                    $hashedPassword = $passwordHasher->hashPassword($user, $newPassword);
-                    $user->setPassword($hashedPassword);
+                    $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
                 }
             }
 
-            // Flush only if no new errors were added
-            if ($form->isValid()) {
-                $entityManager->flush();
-                $this->addFlash('success', 'Profil mis à jour avec succès !');
-                return $this->redirectToRoute('user_profile_details');
-            }
+            $entityManager->flush();
+            $this->addFlash('success', 'Profil mis à jour avec succès !');
+
+            return $this->redirectToRoute('user_profile_details');
         }
 
+        // If the form is invalid, DO NOT flush. The user object in the session remains valid.
         return $this->render('user_profile/edit-profile.html.twig', [
             'edit_profil_form' => $form->createView(),
             'editedUser' => $user,
         ]);
+
     }
-
-
 }

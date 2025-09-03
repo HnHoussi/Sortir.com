@@ -3,37 +3,39 @@
 {% block title %}Accueil - Sortir.com{% endblock %}
 
 {% block body %}
-    <div class="container mt-5 text-center">
-        <h1 class="display-4 mb-4">
-            👋 Bonjour {{ app.user ? app.user.firstName : 'et bienvenue sur Sortir.com' }} !
-        </h1>
-
+    <div class="container mt-2 text-center w-75">
         {% if app.user %}
-            <p class="lead text-success">Vous êtes connecté... ENJOY 🎉</p>
-            <a href="{{ path('sortie_list') }}" class="btn btn-primary btn-lg mt-3">Accéder à vos événements</a>
+            <h1 class="mb-3">Bienvenue, {{ app.user.firstName }} 👋</h1>
+            <p class="lead">Vous êtes connecté. Accédez dès maintenant aux événements et fonctionnalités de votre site sortir.com</p>
         {% else %}
-            <p class="lead text-muted">Connectez-vous pour créer, gérer ou découvrir des événements passionnants.</p>
-            <div class="mt-4">
-                <a href="{{ path('app_login') }}" class="btn btn-outline-primary btn-lg mr-2">Se connecter</a>
-                <a href="#" class="btn btn-outline-success btn-lg">Créer un compte</a>
-            </div>
+            <h1 class="mb-3">Bienvenue sur le portail étudiant 🎓</h1>
+            <p class="lead">Connectez-vous pour accéder aux événements, à votre profil et aux outils réservés aux étudiants.</p>
+            <a href="{{ path('app_login') }}" class="btn btn-primary mt-2">Se connecter</a>
         {% endif %}
+            <!-- Bootstrap Carousel -->
+            <div id="schoolCarousel" class="carousel slide mt-3" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img src="{{ asset('images/carousel1.jpg') }}" class="d-block w-100 rounded" alt="Photo 1" style="height: 30rem; width: auto">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{{ asset('images/carousel2.jpg') }}" class="d-block w-100 rounded" alt="Photo 2" style="height: 30rem; width: auto">
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{{ asset('images/carousel3.jpg') }}" class="d-block w-100 rounded" alt="Photo 3" style="height: 30rem; width: auto">
+                    </div>
+                </div>
 
-        <hr class="my-5">
+                <!-- Controls -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#schoolCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Précédent</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#schoolCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Suivant</span>
+                </button>
+            </div>
 
-        <div class="row">
-            <div class="col-md-4">
-                <h3>📅 Créez vos événements</h3>
-                <p>Planifiez des moments uniques et partagez-les avec votre communauté.</p>
-            </div>
-            <div class="col-md-4">
-                <h3>🌍 Explorez</h3>
-                <p>Découvrez ce qui se passe autour de vous ou dans vos domaines préférés.</p>
-            </div>
-            <div class="col-md-4">
-                <h3>💬 Connectez-vous</h3>
-                <p>Rencontrez des passionnés et vivez des expériences mémorables.</p>
-            </div>
-        </div>
     </div>
 {% endblock %}
