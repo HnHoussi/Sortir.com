@@ -26,7 +26,7 @@ INSERT INTO campus (campus_name) VALUES
                                      ('ENI Rennes'),
                                      ('ENI Quimper'),
                                      ('ENI Niort'),
-                                     ('ENI Saint-Herblain');
+                                     ('ENI Nantes');
 
 -- 🔹 Insert status
 INSERT INTO status (status_label) VALUES

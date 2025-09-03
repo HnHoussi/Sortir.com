@@ -8,12 +8,16 @@ use App\Entity\User;
 use App\Form\SortieCancellationType;
 use App\Form\SortieFilterType;
 use App\Form\SortieType;
+use App\Repository\CityRepository;
 use App\Repository\SortieRepository;
 use App\Repository\StatusRepository;
+use App\Service\FileUploader;
 use App\Service\MailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -89,23 +93,38 @@ final class SortieController extends AbstractController
     public function create(
         EntityManagerInterface $em,
         Request $request,
-        StatusRepository $statusRepository // Injection du repository de statut
-    ): Response
-    {
-        // Logique pour créer une sortie
+        StatusRepository $statusRepository,
+        CityRepository $cityRepository,
+        FileUploader $fileUploader,
+        ParameterBagInterface $parameterBag
+    ): Response {
+        $user = $this->getUser();
+
+        // Création de l'entité Sortie et assignation de l'utilisateur
         $sortie = new Sortie();
+        $sortie->setOrganizer($user);
+        $sortie->setCampus($user->getCampus());
+
+        // Le statut initial est 'Créée'
+        $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+        $sortie->setStatus($status);
+
+        $cities = $cityRepository->findAll();
+
         $form = $this->createForm(SortieType::class, $sortie);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // Assigne l'utilisateur courant comme organisateur
-            /** @var User $user */
-            $user = $this->getUser();
-            $sortie->setOrganizer($user);
-            // Assigne le campus de l'organisateur comme campus de la sortie
-            $sortie->setCampus($user->getCampus());
+            // Gestion du fichier photo
+            $file = $form->get('photoUrl')->getData();
+            if ($file instanceof UploadedFile) {
+                $dir = $parameterBag->get('sortie')['picture_directory'];
+                $filename = $fileUploader->upload($file, $sortie->getName(), $dir);
+                $sortie->setPhotoUrl($filename);
+            }
 
+            // Gestion des boutons "Enregistrer" et "Publier"
             if ($request->request->has('save')) {
                 $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
                 $sortie->setStatus($status);
@@ -126,12 +145,13 @@ final class SortieController extends AbstractController
 
         return $this->render('sortie/create.html.twig', [
             'sortie_form' => $form,
+            'cities' => $cities,
         ]);
     }
 
-    #[Route('/{id}/modify', name: '_modify')]
+    #[Route('/{id}/edit', name: '_edit')]
     #[IsGranted('ROLE_USER')]
-    public function modify(
+    public function edit(
         Sortie $sortie,
         Request $request,
         EntityManagerInterface $em,
@@ -161,8 +181,8 @@ final class SortieController extends AbstractController
             return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
-        return $this->render('sortie/modify.html.twig', [
-            'sortie_form' => $form->createView(),
+        return $this->render('sortie/edit.html.twig', [
+            'sortie_form' => $form,
             'sortie' => $sortie,
         ]);
     }

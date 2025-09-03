@@ -55,7 +55,7 @@ class SortieRepository extends ServiceEntityRepository
             ->addSelect('p', 'c', 'o', 'st');
 
         // Condition pour exclure les sorties archivées
-        // et inclure les sorties créées uniquement si l'utilisateur est l'organisateur
+// et inclure les sorties créées uniquement si l'utilisateur est l'organisateur
         $qb->andWhere('st.status_label != :archived_status AND (st.status_label != :created_status OR s.organizer = :user)');
 
         $qb->setParameter('archived_status', 'Archivée')

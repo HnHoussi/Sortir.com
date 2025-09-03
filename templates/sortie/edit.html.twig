@@ -8,7 +8,7 @@
         <h1 class="text-center mb-4">✍️ Modifier une sortie</h1>
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
-                {{ form_start(sortie_form, {'action': path('sortie_modify', {'id': sortie.id})}) }}
+                {{ form_start(sortie_form, {'action': path('sortie_edit', {'id': sortie.id})}) }}
                 {{ form_row(sortie_form.name) }}
                 {{ form_row(sortie_form.startDatetime) }}
                 {{ form_row(sortie_form.duration) }}

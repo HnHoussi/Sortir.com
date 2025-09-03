@@ -2,11 +2,15 @@
 
 namespace App\Form;
 
+use App\Entity\Campus;
 use App\Entity\Place;
 use App\Entity\Sortie;
+use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -16,14 +20,17 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class SortieType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom de la sortie',
+                'required' => false,
                 'attr' => [
                     'placeholder' => 'Entrez le nom de la sortie',
                     'class' => 'form-control rounded-lg'
@@ -66,12 +73,26 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('photoUrl', TextType::class, [
-                'label' => 'URL de la photo',
+            ->add('photoUrl', FileType::class, [
+                'label' => 'Image de la sortie',
                 'required' => false,
+                'mapped' => false,
                 'attr' => [
                     'placeholder' => 'Lien vers une image (optionnel)',
-                    'class' => 'form-control rounded-lg'
+                    'class' => 'form-control rounded-lg',
+                    'accept' => 'image/*'
+                ],
+                'constraints' => [
+                    new File([
+                        'maxSize' => '1024K', // Taille maximale du fichier
+                        'maxSizeMessage' => 'Le fichier ne doit pas dépasser 1 Mo',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/jpg',
+                        ],
+                        'mimeTypesMessage' => 'Format de fichier non valide, veuillez télécharger une image au format JPEG, JPG ou PNG.',
+                    ])
                 ]
             ])
             ->add('place', EntityType::class, [
@@ -84,6 +105,7 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
+        ;
 //SLB : remplacé par enregistrer et publier qui sont dans create twig
 //            ->add('submit', SubmitType::class, [
 //                'label' => 'Créer la sortie',
