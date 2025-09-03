@@ -8,12 +8,16 @@ use App\Entity\User;
 use App\Form\SortieCancellationType;
 use App\Form\SortieFilterType;
 use App\Form\SortieType;
+use App\Repository\CityRepository;
 use App\Repository\SortieRepository;
 use App\Repository\StatusRepository;
+use App\Service\FileUploader;
 use App\Service\MailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -28,6 +32,8 @@ final class SortieController extends AbstractController
     {
         // Récupère l'utilisateur connecté, ou null si non connecté
         $user = $this->getUser();
+
+        //verifi
 
         if ($user) {
             // Si l'utilisateur est connecté, on procède avec les filtres
@@ -45,6 +51,9 @@ final class SortieController extends AbstractController
 
             // Récupère les sorties en fonction des filtres et de l'utilisateur connecté
             $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
+            // Mettre a jour les statues des sorties en fonction des date de publication
+
+
         } else {
             // Si l'utilisateur n'est pas connecté, on affiche toutes les sorties
             $sorties = $sortieRepository->findAll();
@@ -61,41 +70,54 @@ final class SortieController extends AbstractController
     public function create(
         EntityManagerInterface $em,
         Request $request,
-        StatusRepository $statusRepository // Injection du repository de statut
-    ): Response
-    {
-        // Logique pour créer une sortie
+        StatusRepository $statusRepository,
+        CityRepository $cityRepository,
+        FileUploader $fileUploader,
+        ParameterBagInterface $parameterBag
+    ): Response {
+        // Création de l'entité Sortie
         $sortie = new Sortie();
+
+        $cities = $cityRepository->findAll();
+
+        // Récupération de l'utilisateur connecté
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Pré-remplissage des champs obligatoires avant validation
+        $sortie->setOrganizer($user);
+        $sortie->setCampus($user->getCampus());
+
+        $now = new \DateTimeImmutable();
+        $statusLabel = 'Créée';
+
+        if ($sortie->getPublicationDate() && $sortie->getPublicationDate() <= $now) {
+            $statusLabel = 'Ouverte';
+        }
+
+        $status = $statusRepository->findOneBy(['status_label' => $statusLabel]);
+
+        if (!$status) {
+            throw new \Exception('Le statut "' . $statusLabel . '" n\'a pas été trouvé.');
+        }
+
+        $sortie->setStatus($status);
+
+        // Création et traitement du formulaire
         $form = $this->createForm(SortieType::class, $sortie);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            $now = new \DateTimeImmutable();
-
-            if ($sortie->getPublicationDate() && $sortie->getPublicationDate() <= $now) {
-                // Si la date de publication est passée, le statut est "Ouverte"
-                $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
-            } else {
-                // Sinon, le statut est "Créée"
-                $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+            // Gestion du fichier photo
+            $file = $form->get('photoUrl')->getData();
+            if ($file instanceof UploadedFile) {
+                $dir = $parameterBag->get('sortie')['picture_directory'];
+                $filename = $fileUploader->upload($file, $sortie->getName(), $dir);
+                $sortie->setPhotoUrl($filename);
             }
 
-            if (!$status) {
-                throw new \Exception('Les statuts par défaut "Créée" et/ou "Ouverte" n\'ont pas été trouvés.');
-            }
-
-            // Assigne le statut à la sortie
-            $sortie->setStatus($status);
-
-            // Assigne l'utilisateur courant comme organisateur
-            /** @var User $user */
-            $user = $this->getUser();
-            $sortie->setOrganizer($user);
-            $sortie->setOrganizer($user);
-
+            // Persistance en base
             $em->persist($sortie);
-
             $em->flush();
 
             $this->addFlash('success', 'Sortie créée avec succès !');
@@ -105,8 +127,10 @@ final class SortieController extends AbstractController
 
         return $this->render('sortie/create.html.twig', [
             'sortie_form' => $form,
+            'cities' => $cities,
         ]);
     }
+
 
     #[Route('/{id}', name: '_detail')]
     public function detail(Sortie $sortie): Response

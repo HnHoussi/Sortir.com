@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Place;
 use App\Form\PlaceType;
+use App\Repository\CityRepository;
 use App\Repository\PlaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -78,4 +80,30 @@ final class PlaceController extends AbstractController
 
         return $this->redirectToRoute('app_place_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/ajax/create', name: 'place_create_ajax', methods: ['POST'])]
+    public function createAjax(Request $request, EntityManagerInterface $em, CityRepository $cityRepo): JsonResponse
+    {
+        $cityId = $request->request->get('city');
+        $city = $cityRepo->find($cityId);
+
+        if (!$city) {
+            return new JsonResponse(['success' => false, 'error' => 'Ville introuvable']);
+        }
+
+        $place = new Place();
+        $place->setPlaceName($request->request->get('name'));
+        $place->setStreet($request->request->get('address'));
+        $place->setCity($city);
+
+        $em->persist($place);
+        $em->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'id' => $place->getId(),
+            'name' => $place->getPlaceName()
+        ]);
+    }
+
 }

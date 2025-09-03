@@ -1,117 +1,118 @@
+
 {% extends 'base.html.twig' %}
 
-{% block title %}Créer une nouvelle sortie{% endblock %}
-{% form_theme sortie_form 'bootstrap_5_layout.html.twig' %}
 
 {% block body %}
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">✨ Créer une nouvelle sortie</h1>
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div>
-                    {{ form_start(sortie_form) }}
+    <h1>Créer une Sortie</h1>
 
-                    {{ form_row(sortie_form.name) }}
-                    {{ form_row(sortie_form.start_datetime) }}
-                    {{ form_row(sortie_form.duration) }}
-                    {{ form_row(sortie_form.registration_deadline) }}
-                    {{ form_row(sortie_form.max_registrations) }}
-                    {{ form_row(sortie_form.description) }}
-                    {{ form_row(sortie_form.photo_url) }}
+    <div class="row justify-content-center">
+        <div class="col-6">
+            {{ form_start(sortie_form) }}
 
+            {{ form_row(sortie_form.name) }}
+            {{ form_row(sortie_form.publicationDate) }}
+            {{ form_row(sortie_form.startDatetime) }}
+            {{ form_row(sortie_form.duration) }}
+            {{ form_row(sortie_form.registrationDeadline) }}
+            {{ form_row(sortie_form.maxRegistrations) }}
+            {{ form_row(sortie_form.description) }}
+            {{ form_row(sortie_form.photoUrl) }}
+
+            <div class="d-flex align-items-center justify-content-between">
+                {{ form_row(sortie_form.place) }}
+                <button type="button" class="btn btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#addPlaceModal">
+                    Ajouter un lieu
+                </button>
+            </div>
+
+            {{ form_row(sortie_form.submit) }}
+
+
+            {{ form_end(sortie_form) }}
+        </div>
+    </div>
+
+    {# Modal Bootstrap #}
+    <div class="modal fade" id="addPlaceModal" tabindex="-1" aria-labelledby="addPlaceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="placeForm" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPlaceModalLabel">Ajouter un nouveau lieu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
                     <div class="mb-3">
-                        {{ form_label(sortie_form.place) }}
-                        <div class="input-group">
-                            {{ form_widget(sortie_form.place, {'attr': {'class': 'form-select'}}) }}
-                            <a href="{{ path('app_place_new') }}" class="btn btn-primary" style="margin-left: 10px;">
-                                Ajouter un lieu
-                            </a>
-                        </div>
-                        {{ form_errors(sortie_form.place) }}
+                        <label for="place_name" class="form-label">Nom du lieu</label>
+                        <input type="text" class="form-control" id="place_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="place_city" class="form-label">Ville</label>
+                        <select class="form-select" id="place_city" name="city" required>
+                            {% for city in cities %}
+                                <option value="{{ city.id }}">{{ city.cityName }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="place_address" class="form-label">Adresse</label>
+                        <input type="text" class="form-control" id="place_address" name="address" required>
                     </div>
 
-                    {{ form_end(sortie_form) }}
+                    {# Ajoute d'autres champs si nécessaire #}
                 </div>
-            </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
         </div>
     </div>
 {% endblock %}
 
-{# Ajour d'un Listener JS pour informer en live l'utilisateur si erreur logique sur les dates #}
 {% block javascripts %}
+    {{ parent() }}
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const publicationDateInput = document.getElementById('sortie_form_date_publication');
-            const startDatetimeInput = document.getElementById('sortie_form_start_datetime');
-            const deadlineInput = document.getElementById('sortie_form_registration_deadline');
-            const fortyEightHoursInMs = 48 * 60 * 60 * 1000;
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("Script chargé");
 
-            const createErrorDiv = (inputId) => {
-                const errorDiv = document.createElement('div');
-                errorDiv.style.color = 'red';
-                errorDiv.style.marginTop = '0.5rem';
-                errorDiv.id = `error_${inputId}`;
-                const input = document.getElementById(inputId);
-                if (input) {
-                    input.parentNode.insertBefore(errorDiv, input.nextSibling);
-                }
-                return errorDiv;
-            };
+            const form = document.getElementById('placeForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log("Soumission du formulaire");
 
-            const publicationErrorDiv = createErrorDiv('sortie_form_date_publication');
-            const startErrorDiv = createErrorDiv('sortie_form_start_datetime');
-            const deadlineErrorDiv = createErrorDiv('sortie_form_registration_deadline');
+                const formData = new FormData(form);
 
-            const validateDates = () => {
-                const now = new Date();
+                fetch('{{ path("place_create_ajax") }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        console.log("Réponse reçue");
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Données JSON :", data);
+                        if (data.success) {
+                            const select = document.querySelector('#sortie_place');
+                            const option = new Option(data.name, data.id, true, true);
+                            select.add(option);
 
-                const publicationDate = publicationDateInput ? new Date(publicationDateInput.value) : null;
-                const startDatetime = startDatetimeInput ? new Date(startDatetimeInput.value) : null;
-                const deadline = deadlineInput ? new Date(deadlineInput.value) : null;
-
-                // Réinitialiser les messages d'erreur
-                publicationErrorDiv.textContent = '';
-                startErrorDiv.textContent = '';
-                deadlineErrorDiv.textContent = '';
-
-                // Validation 1 : Une date d'inscription doit être antérieure à une date de sortie d'au moins 48h
-                if (startDatetime && deadline && (startDatetime.getTime() - deadline.getTime() < fortyEightHoursInMs)) {
-                    deadlineErrorDiv.textContent = "La date limite d'inscription doit être au moins 48 heures avant le début de la sortie.";
-                }
-
-                // Validation 2 : Une date de sortie doit être dans le futur d'au moins 48h
-                if (startDatetime && (startDatetime.getTime() - now.getTime() < fortyEightHoursInMs)) {
-                    startErrorDiv.textContent = "La date de sortie doit être dans le futur et à au moins 48 heures de maintenant.";
-                }
-
-                // Validations pour la date de publication
-                // Si la date de publication n'est pas renseignée, on ne fait pas de validation,
-                // ce qui permettra de publier immédiatement.
-                if (publicationDateInput.value) {
-                    let publicationErrorMessage = '';
-
-                    // Validation 3 : Si date de publication renseignée, doit être dans le futur,
-                    // au moins 48h avant la sortie, et antérieure à la sortie et à la date limite d'inscription.
-                    if (publicationDate.getTime() < now.getTime()) {
-                        publicationErrorMessage = "La date de publication doit être dans le futur.";
-                    } else if (startDatetime && (startDatetime.getTime() - publicationDate.getTime() < fortyEightHoursInMs)) {
-                        publicationErrorMessage = "La date de publication doit être au moins 48 heures avant la date de sortie.";
-                    } else if (startDatetime && publicationDate.getTime() >= startDatetime.getTime()) {
-                        publicationErrorMessage = "La date de publication ne peut pas être ultérieure à la date de sortie.";
-                    } else if (deadline && publicationDate.getTime() >= deadline.getTime()) {
-                        publicationErrorMessage = "La date de publication ne peut pas être ultérieure à la date d'inscription.";
-                    }
-
-                    publicationErrorDiv.textContent = publicationErrorMessage;
-                }
-            };
-
-            [publicationDateInput, startDatetimeInput, deadlineInput].forEach(input => {
-                if (input) {
-                    input.addEventListener('change', validateDates);
-                    input.addEventListener('input', validateDates);
-                }
+                            const modalElement = document.getElementById('addPlaceModal');
+                            let modal = bootstrap.Modal.getInstance(modalElement);
+                            if (!modal) {
+                                modal = new bootstrap.Modal(modalElement);
+                            }
+                            modal.hide();
+                            form.reset();
+                        } else {
+                            alert(data.error || 'Erreur lors de la création du lieu');
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erreur réseau :", error);
+                        alert('Erreur réseau');
+                    });
             });
         });
     </script>
 {% endblock %}
+
