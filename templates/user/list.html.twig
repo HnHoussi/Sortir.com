@@ -20,18 +20,17 @@
 
             <table id="usersTable" class="table table-bordered table-hover align-middle text-nowrap text-center">
                 <thead class="table-dark">
-                <tr>
-                    <th class="text-center">Nom</th>
-                    <th class="text-center">Téléphone</th>
-                    <th class="text-center">Rôle</th>
-                    <th class="text-center">Actions</th>
-                </tr>
+                    <tr>
+                        <th class="text-center">Nom</th>
+                        <th class="text-center">Rôle</th>
+                        <th class="text-center">Compte</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for user in users %}
                     <tr>
                         <td>{{ user.firstName }} {{ user.lastName }}</td>
-                        <td>{{ user.phone ?: '—' }}</td>
                         <td>
                             {% if 'ROLE_ADMIN' in user.roles %}
                                 <span class="badge bg-danger">Admin</span>
@@ -39,20 +38,43 @@
                                 <span class="badge bg-secondary">Invité</span>
                             {% endif %}
                         </td>
+                        <td>
+                            {% if '@deleted-user.fr' in user.email %}
+                                Supprimé
+                            {% elseif user.isActive %}
+                                Actif
+                            {% else %}
+                                Banni
+                            {% endif %}
+                        </td>
+
+
                         <td class="d-flex gap-2 justify-content-center">
+                            {# Always show Details button #}
                             <a href="{{ path('user_detail', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">
                                 Détails
                             </a>
 
-                            {% set canEditDelete = user.isActive and 'ROLE_ADMIN' not in user.roles %}
+                            {# Determine flags #}
+                            {% set isTargetAdmin = 'ROLE_ADMIN' in user.roles %}
+                            {% set isDeleted = '@deleted-user.fr' in user.email %}
 
-                            {% if canEditDelete %}
+                            {% if not isDeleted and not isTargetAdmin %}
+                                {# Edit button #}
                                 <a href="{{ path('admin_edit_user', {id: user.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+
+                                {# Ban/Unban button #}
+                                {% if user.isActive %}
+                                    <a href="{{ path('admin_user_toggle_ban', {id: user.id, redirect: 'list'}) }}" class="btn btn-dark btn-sm"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?');">Bannir</a>
+                                {% else %}
+                                    <a href="{{ path('admin_user_toggle_ban', {id: user.id}) }}" class="btn btn-success btn-sm"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir réactiver cet utilisateur ?');">Réactiver</a>
+                                {% endif %}
+
+                                {# Delete button #}
                                 <a href="{{ path('admin_user_delete', {id: user.id}) }}" class="btn btn-danger btn-sm"
                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
-                            {% else %}
-                                <button class="btn btn-warning btn-sm" disabled>Modifier</button>
-                                <button class="btn btn-danger btn-sm" disabled>Supprimer</button>
                             {% endif %}
                         </td>
                     </tr>
