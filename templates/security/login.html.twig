@@ -3,34 +3,46 @@
 {% block title %}Connexion{% endblock %}
 
 {% block body %}
-    <form method="post" novalidate>
-        {% if error %}
-            <div class="alert alert-danger">
-                {% if error.messageKey == 'Invalid credentials.' %}
-                    Identifiants incorrects. Veuillez réessayer.
-                {% else %}
-                    {{ error.messageKey|trans(error.messageData, 'security') }}
-                {% endif %}
+    <div class="container">
+        <div class="row mt-lg-5 justify-content-center">
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" novalidate>
+                            {% if error %}
+                                <div class="alert alert-danger">
+                                    {% if error.messageKey == 'Invalid credentials.' %}
+                                        Identifiants incorrects. Veuillez réessayer.
+                                    {% else %}
+                                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+
+                            <h1 class="h3 mb-3 font-weight-normal text-center">Veuillez vous connecter</h1>
+                            <label for="username" class="mb-2">Email</label>
+                            <input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control mb-3" autocomplete="email" required autofocus>
+
+                            <label for="password" class="mb-2">Mot de passe</label>
+                            <input type="password" name="_password" id="password" class="form-control mb-3" autocomplete="current-password" required>
+
+                            <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+
+                            <div class="checkbox mb-3">
+                                <input type="checkbox" name="_remember_me" id="_remember_me">
+                                <label for="_remember_me">Se souvenir de moi</label>
+                            </div>
+
+                            <div class="text-center">
+                                <button class="btn btn-primary" type="submit">
+                                    Se connecter
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-        {% endif %}
-
-
-        <h1 class="h3 mb-3 font-weight-normal">Veuillez vous connecter</h1>
-        <label for="username">Email</label>
-        <input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" required autofocus>
-
-        <label for="password">Mot de passe</label>
-        <input type="password" name="_password" id="password" class="form-control" autocomplete="current-password" required>
-
-        <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
-
-        <div class="checkbox mb-3">
-            <input type="checkbox" name="_remember_me" id="_remember_me">
-            <label for="_remember_me">Se souvenir de moi</label>
         </div>
-
-        <button class="btn btn-lg btn-primary" type="submit">
-            Se connecter
-        </button>
-    </form>
+    </div>
 {% endblock %}
