@@ -35,7 +35,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column]
-    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.")]
+    #[Assert\NotBlank(message: "Le mot de passe est obligatoire.", groups: ['registration'])]
     #[Assert\Length(min: 8, minMessage: "Le mot de passe doit faire au moins {{ limit }} caractères.")]
     #[Assert\Regex(
         pattern: "/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).+$/",

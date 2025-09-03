@@ -43,8 +43,10 @@
                                     <dt class="col-5 text-end">Date de création du compte</dt>
                                     <dd class="col-7 text-start">{{ user.createdAt|date('d/m/Y H:i')}}</dd>
 
-                                    <dt class="col-5 text-end">Dernière modification</dt>
-                                    <dd class="col-7 text-start">{{ user.updatedAt|date('d/m/Y H:i')}}</dd>
+                                    {% if user.updatedAt %}
+                                        <dt class="col-5 text-end">Dernière modification</dt>
+                                        <dd class="col-7 text-start">{{ user.updatedAt|date('d/m/Y H:i')}}</dd>
+                                    {% endif %}
 
                                     <dt class="col-5 text-end">Rôle</dt>
                                     <dd class="col-7 text-start">
@@ -54,26 +56,53 @@
                                             <span class="badge bg-secondary">Invité</span>
                                         {% endif %}
                                     </dd>
+
+                                    <dt class="col-5 text-end">Compte</dt>
+                                    <td>
+                                        {% if '@deleted-user.fr' in user.email %}
+                                            Supprimé
+                                        {% elseif user.isActive %}
+                                            Actif
+                                        {% else %}
+                                            Banni
+                                        {% endif %}
+                                    </td>
                                 </dl>
                             </div>
                         </div>
                     </div>
 
                     <div class="card-footer d-flex justify-content-center gap-2">
-                        {% set canEditDelete = user.isActive and 'ROLE_ADMIN' not in user.roles %}
-
-                        {% if canEditDelete %}
-                            <a href="{{ path('admin_edit_user', {id: user.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
-                            <a href="{{ path('admin_user_delete', {id: user.id}) }}" class="btn btn-danger btn-sm"
-                               onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
+                        {% if '@deleted-user.fr' in user.email %}
+                            {# Deleted users → only allow returning to the list #}
+                            <a href="{{ path('admin_users_list') }}" class="btn btn-secondary">Retour à la liste</a>
                         {% else %}
-                            <button class="btn btn-warning btn-sm" disabled>Modifier</button>
-                            <button class="btn btn-danger btn-sm" disabled>Supprimer</button>
+                            {# Active or banned users #}
+                            {% if user.isActive %}
+                                {# Active users → normal buttons #}
+                                {% if 'ROLE_ADMIN' not in user.roles %}
+                                    <a href="{{ path('admin_edit_user', {id: user.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                {% endif %}
+                                <a href="{{ path('admin_user_delete', {id: user.id}) }}" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
+                                <a href="{{ path('admin_user_toggle_ban', {id: user.id, redirect: 'detail'}) }}" class="btn btn-dark btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?');">Bannir</a>
+                            {% else %}
+                                {# Banned users → allow Réactiver and Supprimer; Modifier only for admins #}
+                                {% if 'ROLE_ADMIN' in app.user.roles %}
+                                    <a href="{{ path('admin_edit_user', {id: user.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                                {% endif %}
+                                <a href="{{ path('admin_user_delete', {id: user.id}) }}" class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">Supprimer</a>
+                                <a href="{{ path('admin_user_toggle_ban', {id: user.id, redirect: 'detail'}) }}" class="btn btn-success btn-sm"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir réactiver cet utilisateur ?');">Réactiver</a>
+                            {% endif %}
+
+                            {# Always allow returning to the list #}
+                            <a href="{{ path('admin_users_list') }}" class="btn btn-secondary">Retour à la liste</a>
                         {% endif %}
-                        <a href="{{ path('admin_users_list') }}" class="btn btn-secondary">
-                            Retour à la liste
-                        </a>
                     </div>
+
                 </div>
             </div>
         </div>

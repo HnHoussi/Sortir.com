@@ -50,7 +50,21 @@ final class UserProfileController extends AbstractController
         ]);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
+            $passwordValid = true;
+
+            // Handle password change
+            $newPassword = $form->get('newPassword')->getData();
+            $oldPassword = $form->get('oldPassword')->getData();
+            if ($newPassword) {
+                if (!$oldPassword || !$passwordHasher->isPasswordValid($user, $oldPassword)) {
+                    $form->get('oldPassword')->addError(new FormError('Le mot de passe actuel est incorrect.'));
+                    $passwordValid = false;
+                } else {
+                    $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+                }
+            }
+
             // Handle avatar upload
             $avatarFile = $form->get('avatarFilename')->getData();
             if ($avatarFile) {
@@ -66,28 +80,18 @@ final class UserProfileController extends AbstractController
                 }
             }
 
-            // Handle password change
-            $newPassword = $form->get('newPassword')->getData();
-            $oldPassword = $form->get('oldPassword')->getData();
-            if ($newPassword) {
-                if (!$oldPassword || !$passwordHasher->isPasswordValid($user, $oldPassword)) {
-                    $form->get('oldPassword')->addError(new FormError('Le mot de passe actuel est incorrect.'));
-                } else {
-                    $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
-                }
+            // Only flush if form is valid and password is valid
+            if ($form->isValid() && $passwordValid) {
+                $entityManager->flush();
+                $this->addFlash('success', 'Profil mis à jour avec succès !');
+
+                return $this->redirectToRoute('user_profile_details');
             }
-
-            $entityManager->flush();
-            $this->addFlash('success', 'Profil mis à jour avec succès !');
-
-            return $this->redirectToRoute('user_profile_details');
         }
 
-        // If the form is invalid, DO NOT flush. The user object in the session remains valid.
         return $this->render('user_profile/edit-profile.html.twig', [
             'edit_profil_form' => $form->createView(),
             'editedUser' => $user,
         ]);
-
     }
 }

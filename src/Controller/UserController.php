@@ -66,6 +66,7 @@ final class UserController extends AbstractController
         $form = $this->createForm(UserType::class, $user, [
             'is_edit' => false,
             'is_admin' => true,
+            'validation_groups' =>['Default']
         ]);
 
         $form->handleRequest($request);
@@ -193,7 +194,7 @@ final class UserController extends AbstractController
                         $user->setPassword($hashedPassword);
 
                         // 🔥 Validation avec les contraintes de l’entité User
-                        $violations = $validator->validate($user);
+                        $violations = $validator->validate($user, null, ['Default']);
 
                         if (count($violations) > 0) {
                             foreach ($violations as $violation) {
@@ -259,6 +260,7 @@ final class UserController extends AbstractController
         $edit_profil_form = $this->createForm(UserType::class, $user, [
             'is_admin' => true,
             'is_edit' => true,
+            'validation_groups' => ['Default']
         ]);
 
         $edit_profil_form->handleRequest($request);
@@ -312,5 +314,33 @@ final class UserController extends AbstractController
         $this->addFlash('success', 'Utilisateur supprimé avec succès.');
         return $this->redirectToRoute('admin_users_list');
     }
+
+    #[Route('/admin/user/{id}/toggle-ban', name: 'admin_user_toggle_ban')]
+    public function adminToggleBanUser(User $user, EntityManagerInterface $em, Request $request): Response
+    {
+        $currentUser = $this->getUser();
+
+        // Prevent modifying another admin
+        if (in_array('ROLE_ADMIN', $user->getRoles(), true) && $user !== $currentUser) {
+            $this->addFlash('danger', 'Vous ne pouvez pas modifier le statut d\'un autre administrateur.');
+            return $this->redirectToRoute('admin_users_list');
+        }
+
+        // Toggle the isActive status
+        $user->setIsActive(!$user->IsActive());
+        $em->flush();
+
+        $status = $user->IsActive() ? 'réactivé' : 'banni';
+        $this->addFlash('success', sprintf('L\'utilisateur %s a été %s avec succès.', $user->getEmail(), $status));
+
+        // Redirect depending on the query parameter
+        $redirect = $request->query->get('redirect', 'list'); // default: list
+        if ($redirect === 'detail') {
+            return $this->redirectToRoute('user_detail', ['id' => $user->getId()]);
+        }
+
+        return $this->redirectToRoute('admin_users_list');
+    }
+
 
 }

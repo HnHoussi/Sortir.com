@@ -44,6 +44,7 @@ class UserType extends AbstractType
                 'constraints' => [
                     new File([
                         'maxSize' => '2M',
+                        'maxSizeMessage' => 'L\'image est trop volumineuse. Taille max 2 MB',
                         'mimeTypes' => ['image/jpeg','image/png','image/webp'],
                         'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG ou WEBP)',
                     ])
