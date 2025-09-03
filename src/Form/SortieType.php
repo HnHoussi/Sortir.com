@@ -29,16 +29,8 @@ class SortieType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'placeholder' => 'Entrez le nom de la sortie',
-                ]
-            ])
-            ->add('publicationDate', DateTimeType::class, [
-                'label' => 'Date de publication',
-                'html5' => true,
-                'widget' => 'single_text',
-                'attr' => [
                     'class' => 'form-control rounded-lg'
-                ],
-                'required' => false,
+                ]
             ])
             ->add('startDatetime', DateTimeType::class, [
                 'label' => 'Date et heure de la sortie',
@@ -109,10 +101,11 @@ class SortieType extends AbstractType
                     'class' => 'form-control rounded-lg'
                 ]
             ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Créer la sortie',
-                'attr' => ['class' => 'btn btn-success mt-3 mb-3 rounded-lg w-100']
-            ])
+//SLB : remplacé par enregistrer et publier qui sont dans create twig
+//            ->add('submit', SubmitType::class, [
+//                'label' => 'Créer la sortie',
+//                'attr' => ['class' => 'btn btn-success mt-3 mb-3 rounded-lg w-100']
+//            ])
         ;
     }
 

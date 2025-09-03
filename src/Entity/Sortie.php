@@ -8,8 +8,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Constraints\Expression;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: SortieRepository::class)]
+//#[ORM\HasLifecycleCallbacks]
 class Sortie
 {
     #[ORM\Id]
@@ -25,6 +28,7 @@ class Sortie
     #[ORM\Column]
     #[Assert\NotBlank(message: 'La date de début est obligatoire.')]
     #[Assert\GreaterThan(propertyPath: 'registration_deadline', message: 'La date de sortie doit être après la date limite d\'inscription.')]
+    #[Assert\GreaterThanOrEqual('+2 days', message: 'La date de début doit être au moins 2 jours après aujourd\'hui.')]
     private ?\DateTime $startDatetime = null;
 
     #[ORM\Column]
@@ -33,7 +37,9 @@ class Sortie
     private ?int $duration = null;
 
     #[ORM\Column(nullable: true)]
-    #[Assert\LessThan(propertyPath: 'start_datetime', message: 'La date limite d\'inscription doit être antérieure à la date de la sortie.')]
+    #[Assert\GreaterThanOrEqual('now', message: 'La date limite d\'inscription ne peut pas être dans le passé.')]
+    #[Expression("this.getRegistrationDeadline() < this.getStartDatetime().modify('-48 hours')",
+        message: 'La date limite d\'inscription doit être au moins 48 heures avant le début de la sortie.')]
     private ?\DateTime $registrationDeadline = null;
 
     #[ORM\Column(nullable: true)]

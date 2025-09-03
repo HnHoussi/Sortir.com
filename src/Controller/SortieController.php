@@ -18,9 +18,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\File\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 
 #[Route('/sortie', name: 'sortie')]
@@ -32,8 +34,6 @@ final class SortieController extends AbstractController
     {
         // Récupère l'utilisateur connecté, ou null si non connecté
         $user = $this->getUser();
-
-        //verifi
 
         if ($user) {
             // Si l'utilisateur est connecté, on procède avec les filtres
@@ -51,9 +51,6 @@ final class SortieController extends AbstractController
 
             // Récupère les sorties en fonction des filtres et de l'utilisateur connecté
             $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
-            // Mettre a jour les statues des sorties en fonction des date de publication
-
-
         } else {
             // Si l'utilisateur n'est pas connecté, on affiche toutes les sorties
             $sorties = $sortieRepository->findAll();
@@ -63,6 +60,32 @@ final class SortieController extends AbstractController
             'sorties' => $sorties,
             'form' => $form,
         ]);
+    }
+
+    #[Route('/archive', name: '_archive', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function archiveSorties(SortieRepository $sortieRepository, EntityManagerInterface $entityManager): RedirectResponse
+    {
+        $dateLimit = new \DateTime('-1 month');
+
+        $sortiesToArchive = $sortieRepository->findOldSortiesForArchiving($dateLimit);
+        $count = count($sortiesToArchive);
+
+        $archivedStatus = $entityManager->getRepository(Status::class)->findOneBy(['status_label' => 'Archivée']);
+
+        if (!$archivedStatus) {
+            $this->addFlash('danger', 'Statut "Archivée" non trouvé. Impossible d\'archiver.');
+        } elseif ($count > 0) {
+            foreach ($sortiesToArchive as $sortie) {
+                $sortie->setStatus($archivedStatus);
+            }
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('Archivé : %d sortie(s).', $count));
+        } else {
+            $this->addFlash('info', 'Aucune sortie de plus d\'un mois n\'a été trouvée ayant le statut "terminée" ou "annulée".');
+        }
+
+        return $this->redirectToRoute('sortie_list');
     }
 
 
@@ -77,37 +100,28 @@ final class SortieController extends AbstractController
     ): Response {
         // Création de l'entité Sortie
         $sortie = new Sortie();
-
         $cities = $cityRepository->findAll();
 
-        // Récupération de l'utilisateur connecté
-        /** @var User $user */
-        $user = $this->getUser();
-
-        // Pré-remplissage des champs obligatoires avant validation
-        $sortie->setOrganizer($user);
-        $sortie->setCampus($user->getCampus());
-
-        $now = new \DateTimeImmutable();
-        $statusLabel = 'Créée';
-
-        if ($sortie->getPublicationDate() && $sortie->getPublicationDate() <= $now) {
-            $statusLabel = 'Ouverte';
-        }
-
-        $status = $statusRepository->findOneBy(['status_label' => $statusLabel]);
-
-        if (!$status) {
-            throw new \Exception('Le statut "' . $statusLabel . '" n\'a pas été trouvé.');
-        }
-
-        $sortie->setStatus($status);
-
-        // Création et traitement du formulaire
         $form = $this->createForm(SortieType::class, $sortie);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+
+            if (!$status) {
+                throw new \Exception('Le statut par défaut "Créée" n\'a pas été trouvé.');
+            }
+
+            // Assigne le statut à la sortie
+            $sortie->setStatus($status);
+
+            // Assigne l'utilisateur courant comme organisateur
+            /** @var User $user */
+            $user = $this->getUser();
+            $sortie->setOrganizer($user);
+            // Assigne le campus de l'organisateur comme campus de la sortie
+            $sortie->setCampus($user->getCampus());
+
             // Gestion du fichier photo
             $file = $form->get('photoUrl')->getData();
             if ($file instanceof UploadedFile) {
@@ -116,11 +130,22 @@ final class SortieController extends AbstractController
                 $sortie->setPhotoUrl($filename);
             }
 
-            // Persistance en base
-            $em->persist($sortie);
-            $em->flush();
 
-            $this->addFlash('success', 'Sortie créée avec succès !');
+            if ($request->request->has('save')) {
+                $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+                $sortie->setStatus($status);
+                $em->persist($sortie);
+                $em->flush();
+                $this->addFlash('success', 'Sortie sauvegardée en tant que brouillon !');
+            } elseif ($request->request->has('publish')) {
+                $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+                $sortie->setStatus($status);
+                $sortie->setPublicationDate(new \DateTimeImmutable());
+
+                $em->persist($sortie);
+                $em->flush();
+                $this->addFlash('success', 'Sortie publiée avec succès !');
+            }
 
             return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
@@ -131,6 +156,43 @@ final class SortieController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/modify', name: '_modify')]
+    #[IsGranted('ROLE_USER')]
+    public function modify(
+        Sortie $sortie,
+        Request $request,
+        EntityManagerInterface $em,
+        StatusRepository $statusRepository
+    ): Response {
+        // Règle métier : seule la sortie avec le statut 'Créée' peut être modifiée
+        if ($sortie->getOrganizer() !== $this->getUser() || $sortie->getStatus()->getStatusLabel() !== 'Créée') {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas modifier cette sortie.');
+        }
+
+        $form = $this->createForm(SortieType::class, $sortie);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Gère les boutons "Enregistrer" et "Publier"
+            if ($request->request->has('save')) {
+                $em->flush();
+                $this->addFlash('success', 'Sortie modifiée avec succès !');
+            } elseif ($request->request->has('publish')) {
+                $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+                $sortie->setStatus($status);
+                $sortie->setPublicationDate(new \DateTimeImmutable());
+                $em->flush();
+                $this->addFlash('success', 'Sortie modifiée et publiée avec succès !');
+            }
+
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+        }
+
+        return $this->render('sortie/modify.html.twig', [
+            'sortie_form' => $form->createView(),
+            'sortie' => $sortie,
+        ]);
+    }
 
     #[Route('/{id}', name: '_detail')]
     public function detail(Sortie $sortie): Response
@@ -151,6 +213,28 @@ final class SortieController extends AbstractController
             'is_registration_open' => $isRegistrationOpen,
         ]);
     }
+
+    #[Route('/{id}/publish', name: '_publish')]
+    #[IsGranted('ROLE_USER')]
+    public function publish(
+        Sortie $sortie,
+        EntityManagerInterface $em,
+        StatusRepository $statusRepository
+    ): Response {
+        if ($sortie->getOrganizer() !== $this->getUser() || $sortie->getStatus()->getStatusLabel() !== 'Créée') {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas publier cette sortie.');
+        }
+
+        $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
+        $sortie->setStatus($status);
+        $sortie->setPublicationDate(new \DateTimeImmutable());
+        $em->flush();
+
+        $this->addFlash('success', 'La sortie a été publiée avec succès !');
+
+        return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+    }
+
     #[Route('/{id}/register', name: '_register')]
     public function register(Sortie $sortie, EntityManagerInterface $em, MailService $mailService): Response
     {
@@ -275,28 +359,6 @@ final class SortieController extends AbstractController
             'form' => $form->createView(),
         ]);
 
-    }
-
-    #[Route('/archive', name: '_archive', methods: ['GET'])]
-    public function archiveSorties(SortieRepository $sortieRepository, EntityManagerInterface $entityManager): Response
-    {
-        $dateLimit = new \DateTime('-1 month');
-
-        $sortiesToArchive = $sortieRepository->findOldSortiesForArchiving($dateLimit);
-
-        $archivedStatus = $entityManager->getRepository(Status::class)->findOneBy(['status_label' => 'Archivée']);
-
-        if (!$archivedStatus) {
-            return new Response('Statut "Archivée" non trouvé. Impossible d\'archiver.', Response::HTTP_NOT_FOUND);
-        }
-
-        foreach ($sortiesToArchive as $sortie) {
-            $sortie->setStatus($archivedStatus);
-        }
-
-        $entityManager->flush();
-
-        return new Response(sprintf('Archivé %d sorties.', count($sortiesToArchive)));
     }
 
 }

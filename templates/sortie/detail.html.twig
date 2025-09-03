@@ -11,13 +11,13 @@
                 <p><strong>Nom de la sortie :</strong> {{ sortie.name }}</p>
                 <p><strong>Date et heure de la sortie :</strong> {{ sortie.startDatetime ? sortie.startDatetime|date('d/m/Y H:i') : '—' }}</p>
                 <p><strong>Date limite d'inscription :</strong> {{ sortie.registrationDeadline ? sortie.registrationDeadline|date('d/m/Y H:i') : '—' }}</p>
-                <p><strong>Nombre de places :</strong> {{ sortie.users.count }} / {{ sortie.maxRegistrations }}</p>
+                <p><strong>Nombre de places occupées :</strong> {{ sortie.users.count }} / {{ sortie.maxRegistrations }}</p>
                 <p><strong>Durée :</strong> {{ sortie.duration }} minutes</p>
                 <p><strong>Description et infos :</strong> {{ sortie.description }}</p>
             </div>
 
             <div class="col-md-6">
-                <p><strong>Ville organisatrice :</strong> {{ sortie.place.city.cityName }}</p>
+                <p><strong>Campus organisateur :</strong> {{ sortie.campus.campusName }}</p>
                 <p><strong>Lieu :</strong> {{ sortie.place.placeName }}</p>
                 <p><strong>Rue :</strong> {{ sortie.place.street }}</p>
                 <p><strong>Code postal :</strong> {{ sortie.place.city.postalCode }}</p>
@@ -61,8 +61,15 @@
             </table>
         </div>
 
-        {% if is_organizer and sortie.startDatetime > "now"|date and sortie.status.statusLabel != 'Annulée' %}
-            <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler l'événement</a>
+        {% if is_organizer and sortie.status.statusLabel == 'Créée' %}
+            <a href="{{ path('sortie_modify', {'id': sortie.id}) }}" class="btn btn-info mt-3">Modifier la sortie</a>
+            <form action="{{ path('sortie_publish', {'id': sortie.id}) }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success mt-3">Publier la sortie</button>
+            </form>
+        {% endif %}
+
+        {% if is_organizer and sortie.startDatetime > "now"|date and sortie.status.statusLabel in ['Créée', 'Ouverte', 'Fermée'] %}
+            <a href="{{ path('sortie_cancel', {'id': sortie.id}) }}" class="btn btn-danger mt-3">Annuler la sortie</a>
         {% endif %}
 
         {% if not is_organizer and is_registration_open %}

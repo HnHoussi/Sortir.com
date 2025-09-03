@@ -1,22 +1,24 @@
-
 {% extends 'base.html.twig' %}
 
+{% block title %}Créer une nouvelle sortie{% endblock %}
+{% form_theme sortie_form 'bootstrap_5_layout.html.twig' %}
 
 {% block body %}
-    <h1>Créer une Sortie</h1>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">✨ Créer une nouvelle sortie</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div>
+                    {{ form_start(sortie_form) }}
 
-    <div class="row justify-content-center">
-        <div class="col-6">
-            {{ form_start(sortie_form) }}
+                    {{ form_row(sortie_form.name) }}
+                    {{ form_row(sortie_form.startDatetime) }}
+                    {{ form_row(sortie_form.duration) }}
+                    {{ form_row(sortie_form.registrationDeadline) }}
+                    {{ form_row(sortie_form.maxRegistrations) }}
+                    {{ form_row(sortie_form.description) }}
+                    {{ form_row(sortie_form.photoUrl) }}
 
-            {{ form_row(sortie_form.name) }}
-            {{ form_row(sortie_form.publicationDate) }}
-            {{ form_row(sortie_form.startDatetime) }}
-            {{ form_row(sortie_form.duration) }}
-            {{ form_row(sortie_form.registrationDeadline) }}
-            {{ form_row(sortie_form.maxRegistrations) }}
-            {{ form_row(sortie_form.description) }}
-            {{ form_row(sortie_form.photoUrl) }}
 
             <div class="d-flex align-items-center justify-content-between">
                 {{ form_row(sortie_form.place) }}
@@ -66,6 +68,14 @@
             </form>
         </div>
     </div>
+            <div class="d-flex justify-content-between mt-3">
+                <button type="submit" name="save" class="btn btn-secondary w-48">Enregistrer</button>
+                <button type="submit" name="publish" class="btn btn-success w-48">Publier</button>
+            </div>
+
+            {{ form_end(sortie_form) }}
+        </div>
+
 {% endblock %}
 
 {% block javascripts %}
