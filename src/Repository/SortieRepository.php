@@ -54,10 +54,13 @@ class SortieRepository extends ServiceEntityRepository
             ->leftJoin('s.status', 'st')
             ->addSelect('p', 'c', 'o', 'st');
 
-        // Exclusion des sorties archivées et des sorties créées (non publiées)
-        $qb->andWhere('st.status_label != :archived_status AND st.status_label != :created_status')
-            ->setParameter('archived_status', 'Archivée')
-            ->setParameter('created_status', 'Créée');
+        // Condition pour exclure les sorties archivées
+// et inclure les sorties créées uniquement si l'utilisateur est l'organisateur
+        $qb->andWhere('st.status_label != :archived_status AND (st.status_label != :created_status OR s.organizer = :user)');
+
+        $qb->setParameter('archived_status', 'Archivée')
+            ->setParameter('created_status', 'Créée')
+            ->setParameter('user', $user);
 
         if (!empty($filters['name'])) {
             $qb->andWhere('s.name LIKE :name')

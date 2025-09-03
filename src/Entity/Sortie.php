@@ -38,8 +38,6 @@ class Sortie
 
     #[ORM\Column(nullable: true)]
     #[Assert\GreaterThanOrEqual('now', message: 'La date limite d\'inscription ne peut pas être dans le passé.')]
-    #[Expression("this.getRegistrationDeadline() < this.getStartDatetime().modify('-48 hours')",
-        message: 'La date limite d\'inscription doit être au moins 48 heures avant le début de la sortie.')]
     private ?\DateTime $registrationDeadline = null;
 
     #[ORM\Column(nullable: true)]

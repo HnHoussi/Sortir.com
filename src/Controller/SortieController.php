@@ -98,29 +98,23 @@ final class SortieController extends AbstractController
         FileUploader $fileUploader,
         ParameterBagInterface $parameterBag
     ): Response {
-        // Création de l'entité Sortie
+        $user = $this->getUser();
+
+        // Création de l'entité Sortie et assignation de l'utilisateur
         $sortie = new Sortie();
+        $sortie->setOrganizer($user);
+        $sortie->setCampus($user->getCampus());
+
+        // Le statut initial est 'Créée'
+        $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
+        $sortie->setStatus($status);
+
         $cities = $cityRepository->findAll();
 
         $form = $this->createForm(SortieType::class, $sortie);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
-
-            if (!$status) {
-                throw new \Exception('Le statut par défaut "Créée" n\'a pas été trouvé.');
-            }
-
-            // Assigne le statut à la sortie
-            $sortie->setStatus($status);
-
-            // Assigne l'utilisateur courant comme organisateur
-            /** @var User $user */
-            $user = $this->getUser();
-            $sortie->setOrganizer($user);
-            // Assigne le campus de l'organisateur comme campus de la sortie
-            $sortie->setCampus($user->getCampus());
 
             // Gestion du fichier photo
             $file = $form->get('photoUrl')->getData();
@@ -130,7 +124,7 @@ final class SortieController extends AbstractController
                 $sortie->setPhotoUrl($filename);
             }
 
-
+            // Gestion des boutons "Enregistrer" et "Publier"
             if ($request->request->has('save')) {
                 $status = $statusRepository->findOneBy(['status_label' => 'Créée']);
                 $sortie->setStatus($status);
@@ -141,7 +135,6 @@ final class SortieController extends AbstractController
                 $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
                 $sortie->setStatus($status);
                 $sortie->setPublicationDate(new \DateTimeImmutable());
-
                 $em->persist($sortie);
                 $em->flush();
                 $this->addFlash('success', 'Sortie publiée avec succès !');
@@ -156,9 +149,9 @@ final class SortieController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/modify', name: '_modify')]
+    #[Route('/{id}/edit', name: '_edit')]
     #[IsGranted('ROLE_USER')]
-    public function modify(
+    public function edit(
         Sortie $sortie,
         Request $request,
         EntityManagerInterface $em,
@@ -188,8 +181,8 @@ final class SortieController extends AbstractController
             return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
-        return $this->render('sortie/modify.html.twig', [
-            'sortie_form' => $form->createView(),
+        return $this->render('sortie/edit.html.twig', [
+            'sortie_form' => $form,
             'sortie' => $sortie,
         ]);
     }
