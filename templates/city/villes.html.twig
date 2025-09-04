@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Gérer les villes
+{% endblock %}
+
+{% block body %}
+    <section class="subContent">
+        <h2>Gérer les Villes</h2>
+
+        {% include "_flash.twig.html" %}
+
+        <h3>Ajouter une nouvelle ville</h3>
+        <div class="newVille">
+            {# Le formulaire d'ajout, géré par le contrôleur #}
+            {{ form_start(form) }}
+            {{ form_widget(form) }}
+            <button type="submit" class="btn btnWhite">Ajouter</button>
+            {{ form_end(form) }}
+        </div>
+
+        <hr>
+
+        <h3>Liste des villes</h3>
+        <ul class="citiesList">
+            {% for city in cities %}
+                <li>
+                    <span>{{ city.name }} ({{ city.codePostal }})</span>
+                    <div class="villesBtns">
+                        <a href="{{ path('admin_ville_modifier', {id: city.id}) }}" class="btn btnEdit" title="Modifier cette ville">
+                            <img src="{{ asset('img/edit.svg') }}" alt="Modifier">
+                        </a>
+
+                        <button class="noButton btnTrash"
+                                data-template="deleteCityModal"
+                                data-second-title="{{ city.name }}"
+                                data-link="{{ path('admin_ville_supprimer', {id: city.id}) }}"
+                                title="Supprimer cette ville"
+                                type="button">
+                            <img src="{{ asset('img/trash2.svg') }}" alt="Supprimer">
+                        </button>
+                    </div>
+                </li>
+            {% else %}
+                <li>Aucune ville enregistrée.</li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endblock %}

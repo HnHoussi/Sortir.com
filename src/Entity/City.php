@@ -27,6 +27,13 @@ class City
     #[ORM\OneToMany(targetEntity: Place::class, mappedBy: 'city', orphanRemoval: true)]
     private Collection $places;
 
+    // Ajoutez ces deux lignes avec vos autres propriétés
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $latitude = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $longitude = null;
+
     public function __construct()
     {
         $this->places = new ArrayCollection();
@@ -90,4 +97,27 @@ class City
 
         return $this;
     }
+
+    public function getLatitude(): ?string
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?string $latitude): static
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    public function getLongitude(): ?string
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?string $longitude): static
+    {
+        $this->longitude = $longitude;
+        return $this;
+    }
+
 }
