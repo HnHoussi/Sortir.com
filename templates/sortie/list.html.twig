@@ -63,7 +63,7 @@
                                 <p class="card-text mb-0">
                                     <strong>Statut :</strong> {{ sortie.status.statusLabel }}
                                 </p>
-                                {% if is_granted('ROLE_ADMIN') and sortie.organizer != app.user %}
+                                {% if is_granted('ROLE_ADMIN') and sortie.organizer != app.user and sortie.status.id != 6 %}
                                     <a href="{{ path('sortie_annuler', {'id': sortie.id}) }}"
                                        class="btn btn-warning btn-sm mt-2"
                                        onclick="return confirm('Confirmer l\'annulation de cette sortie ?');">
