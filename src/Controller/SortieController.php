@@ -92,12 +92,13 @@ final class SortieController extends AbstractController
     #[Route('/create', name: '_create')]
     public function create(
         EntityManagerInterface $em,
-        Request $request,
-        StatusRepository $statusRepository,
-        CityRepository $cityRepository,
-        FileUploader $fileUploader,
-        ParameterBagInterface $parameterBag
-    ): Response {
+        Request                $request,
+        StatusRepository       $statusRepository,
+        CityRepository         $cityRepository,
+        FileUploader           $fileUploader,
+        ParameterBagInterface  $parameterBag
+    ): Response
+    {
         $user = $this->getUser();
 
         // Création de l'entité Sortie et assignation de l'utilisateur
@@ -152,11 +153,12 @@ final class SortieController extends AbstractController
     #[Route('/{id}/edit', name: '_edit')]
     #[IsGranted('ROLE_USER')]
     public function edit(
-        Sortie $sortie,
-        Request $request,
+        Sortie                 $sortie,
+        Request                $request,
         EntityManagerInterface $em,
-        StatusRepository $statusRepository
-    ): Response {
+        StatusRepository       $statusRepository
+    ): Response
+    {
         // Règle métier : seule la sortie avec le statut 'Créée' peut être modifiée
         if ($sortie->getOrganizer() !== $this->getUser() || $sortie->getStatus()->getStatusLabel() !== 'Créée') {
             throw $this->createAccessDeniedException('Vous ne pouvez pas modifier cette sortie.');
@@ -191,7 +193,7 @@ final class SortieController extends AbstractController
     public function detail(Sortie $sortie): Response
     {
 
-        $isOrganizer  = $this->getUser() === $sortie->getOrganizer();
+        $isOrganizer = $this->getUser() === $sortie->getOrganizer();
         $user = $this->getUser();
         $isOrganizer = $user && $user->getId() === $sortie->getOrganizer()->getId();
         $isRegistered = $user && $sortie->getUsers()->contains($user);
@@ -210,10 +212,11 @@ final class SortieController extends AbstractController
     #[Route('/{id}/publish', name: '_publish')]
     #[IsGranted('ROLE_USER')]
     public function publish(
-        Sortie $sortie,
+        Sortie                 $sortie,
         EntityManagerInterface $em,
-        StatusRepository $statusRepository
-    ): Response {
+        StatusRepository       $statusRepository
+    ): Response
+    {
         if ($sortie->getOrganizer() !== $this->getUser() || $sortie->getStatus()->getStatusLabel() !== 'Créée') {
             throw $this->createAccessDeniedException('Vous ne pouvez pas publier cette sortie.');
         }
@@ -353,30 +356,55 @@ final class SortieController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/sortie/{id}/annuler', name: 'admin_annuler_sortie')]
-    public function annulerSortie(Request $request, Sortie $sortie, EntityManagerInterface $em): Response
+
+    #[Route('/sortie/{id}/annuler', name: '_annuler')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function annulerSortie(Request $request, Sortie $sortie, EntityManagerInterface $em, StatusRepository $statusRepository): Response
     {
         $now = new \DateTime();
 
-        if ($sortie->getDateHeureDebut() <= $now) {
+        if ($sortie->getStartDatetime() <= $now) {
             $this->addFlash('error', 'Impossible d\'annuler : la sortie a déjà commencé.');
-            return $this->redirectToRoute('admin_liste_sorties');
+            return $this->redirectToRoute('sortie_list');
+        }
+
+        if ($sortie->getOrganizer() === $this->getUser()) {
+            $this->addFlash('warning', 'Utilisez l’annulation standard en tant qu’organisateur.');
+            return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
         }
 
         if ($request->isMethod('POST')) {
             $motif = $request->request->get('motif');
-            $etatAnnulee = $em->getRepository(Etat::class)->findOneBy(['libelle' => 'Annulée']);
+            $etatAnnulee = $statusRepository->findOneBy(['status_label' => 'Annulée']);
 
-            $sortie->setEtat($etatAnnulee);
+            if (!$etatAnnulee) {
+                $this->addFlash('error', 'Statut "Annulée" introuvable.');
+                return $this->redirectToRoute('sortie_detail', ['id' => $sortie->getId()]);
+            }
+
+            $sortie->setStatus($etatAnnulee);
             $sortie->setMotifAnnulation($motif);
-
             $em->flush();
+
             $this->addFlash('success', 'Sortie annulée avec succès.');
-            return $this->redirectToRoute('admin_liste_sorties');
+            return $this->redirectToRoute('sortie_list');
         }
 
-        return $this->render('admin/annuler_sortie.html.twig', [
+        return $this->render('sortie/annuler_sortie.html.twig', [
             'sortie' => $sortie,
         ]);
     }
+
+
+    #[Route('/{id}/delete', name: 'sortie_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(Request $request,Sortie $sortie, EntityManagerInterface $em): Response
+    {
+        $em->remove($sortie);
+        $em->flush();
+
+        $this->addFlash('success', 'Sortie supprimée avec succès.');
+        return $this->redirectToRoute('sortie_list');
+    }
+
 }
