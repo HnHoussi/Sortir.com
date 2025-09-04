@@ -10,10 +10,14 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip \
     libonig-dev \
-    && docker-php-ext-install intl pdo pdo_mysql zip bcmath opcache
+    && docker-php-ext-install intl pdo pdo_mysql zip bcmath opcache \
+    && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
+
+# Set a default ServerName to suppress warnings
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Point Apache to Symfony's /public directory
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
@@ -28,16 +32,8 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Set environment variables for production
-ENV APP_ENV=prod
-ENV APP_DEBUG=0
-
-# Install PHP dependencies without dev packages
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
-
-# Clear & warmup Symfony cache for production
-RUN php bin/console cache:clear --env=prod --no-debug \
-    && php bin/console cache:warmup --env=prod --no-debug
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/var /var/www/html/vendor
