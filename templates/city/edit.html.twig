@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier une ville{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Modifier {{ city.cityName }}</h1>
+
+
+        <div class="newVille">
+            {{ form_start(form) }}
+            {{ form_widget(form) }}
+            <button type="submit" class="btn btn-warning">Modifier</button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

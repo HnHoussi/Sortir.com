@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des villes disponibles{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Liste des villes disponibles</h1>
+            {# Le bouton est visible seulement si l'utilisateur a le rôle d'administrateur #}
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_villes') }}" class="btn btn-primary">
+                    Gérer les villes
+                </a>
+            {% endif %}
+        </div>
+
+        {# La recherche n'est plus gérée ici mais dans la vue 'admin' #}
+        {# La logique JS a également été supprimée #}
+        <div class="d-flex justify-content-between mb-3">
+            <div>
+                <label for="perPage">Afficher</label>
+                <select id="perPage" class="form-select d-inline-block w-auto ms-2">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <input type="text" id="searchCity" class="form-control w-50" placeholder="Rechercher une ville...">
+        </div>
+
+        <table class="table table-bordered table-hover text-center">
+            <thead class="table-primary">
+            <tr>
+                <th>ville</th>
+                <th>Code Postal</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for city in cities %}
+                <tr>
+                    <td>{{ city.name }}</td>
+                    <td>{{ city.codePostal }}</td>
+                    <td>{{ city.latitude ?? '—' }}</td>
+                    <td>{{ city.longitude ?? '—' }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4">Aucune ville enregistrée.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item"><a class="page-link" href="#">Précédente</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Suivante</a></li>
+            </ul>
+        </nav>
+    </div>
+{% endblock %}

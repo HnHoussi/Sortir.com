@@ -77,6 +77,23 @@ class Sortie
     #[ORM\JoinColumn(nullable: false)]
     private ?Campus $campus = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $motifAnnulation = null;
+
+
+
+    public function getMotifAnnulation(): ?string
+    {
+        return $this->motifAnnulation;
+    }
+
+    public function setMotifAnnulation(?string $motifAnnulation): self
+    {
+        $this->motifAnnulation = $motifAnnulation;
+        return $this;
+    }
+
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
