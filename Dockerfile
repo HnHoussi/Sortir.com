@@ -29,15 +29,22 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy only composer files first to leverage Docker cache
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies without dev packages
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Copy the rest of the project
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Ensure var and vendor directories exist and set proper permissions
+RUN mkdir -p var vendor \
+    && chown -R www-data:www-data var vendor \
+    && chmod -R 775 var
 
-# Ensure var and vendor directories exist and set permissions
-RUN mkdir -p /var/www/html/var /var/www/html/vendor \
-    && chown -R www-data:www-data /var/www/html/var /var/www/html/vendor
+# Warm up Symfony cache for production
+RUN php bin/console cache:warmup --env=prod
 
 # Expose port 80
 EXPOSE 80
