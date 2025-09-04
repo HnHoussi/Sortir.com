@@ -12,6 +12,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route('/place')]
 final class PlaceController extends AbstractController
@@ -82,8 +84,14 @@ final class PlaceController extends AbstractController
     }
 
     #[Route('/ajax/create', name: 'place_create_ajax', methods: ['POST'])]
-    public function createAjax(Request $request, EntityManagerInterface $em, CityRepository $cityRepo): JsonResponse
+    public function createAjax(Request $request, EntityManagerInterface $em, CityRepository $cityRepo, CsrfTokenManagerInterface $csrfTokenManager): JsonResponse
     {
+
+        $token = new CsrfToken('place_creation', $request->request->get('_token'));
+        if (!$csrfTokenManager->isTokenValid($token)) {
+            return new JsonResponse(['success' => false, 'error' => 'Token CSRF invalide'], 403);
+        }
+
         $cityId = $request->request->get('city');
         $city = $cityRepo->find($cityId);
 
@@ -101,8 +109,11 @@ final class PlaceController extends AbstractController
 
         return new JsonResponse([
             'success' => true,
-            'id' => $place->getId(),
-            'name' => $place->getPlaceName()
+            'place' => [
+                'id' => $place->getId(),
+                'name' => $place->getPlaceName(),
+                'city' => $place->getCity()->getCityName(),
+            ]
         ]);
     }
 

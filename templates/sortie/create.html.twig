@@ -1,11 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}Créer une nouvelle sortie{% endblock %}
-{% form_theme sortie_form 'bootstrap_5_layout.html.twig' %}
 
 {% block body %}
     <div class="container mt-5 mb-5">
-        <h1 class="text-center mb-4">✨ Créer une nouvelle sortie</h1>
+        <h1 class="text-center mb-4">? Créer une nouvelle sortie</h1>
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div>
@@ -39,17 +38,16 @@
                 </div>
             </div>
 
-            {# Modal Bootstrap #}
-            <div class="modal fade" id="addPlaceModal" tabindex="-1" aria-labelledby="addPlaceModalLabel"
-                 aria-hidden="true">
+            {# MODAL DE CRÉATION DE LIEU #}
+            <div class="modal fade" id="addPlaceModal" tabindex="-1" aria-labelledby="addPlaceModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <form id="placeForm" class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="addPlaceModalLabel">Ajouter un nouveau lieu</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Fermer"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                         </div>
                         <div class="modal-body">
+                            <input type="hidden" name="_token" value="{{ csrf_token('place_creation') }}">
                             <div class="mb-3">
                                 <label for="place_name" class="form-label">Nom du lieu</label>
                                 <input type="text" class="form-control" id="place_name" name="name" required>
@@ -66,7 +64,6 @@
                                 <label for="place_address" class="form-label">Adresse</label>
                                 <input type="text" class="form-control" id="place_address" name="address" required>
                             </div>
-
                         </div>
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -74,7 +71,45 @@
                     </form>
                 </div>
             </div>
+
         </div>
     </div>
+
+    <script>
+        document.getElementById('placeForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+
+            fetch('{{ path('place_create_ajax') }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.place) {
+                        const placeSelect = document.getElementById('{{ sortie_form.place.vars.id }}');
+                        const newOption = document.createElement('option');
+                        newOption.value = data.place.id;
+                        newOption.textContent = `${data.place.name} (${data.place.city})`;
+                        newOption.selected = true;
+                        placeSelect.appendChild(newOption);
+
+                        bootstrap.Modal.getInstance(document.getElementById('addPlaceModal')).hide();
+                        form.reset();
+                    } else {
+                        alert(data.error || 'Erreur inconnue lors de l\'ajout du lieu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur AJAX :', error);
+                    alert('Une erreur est survenue lors de la requête.');
+                });
+        });
+    </script>
 
 {% endblock %}
