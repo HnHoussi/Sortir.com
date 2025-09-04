@@ -135,7 +135,7 @@ final class SortieController extends AbstractController
             } elseif ($request->request->has('publish')) {
                 $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
                 $sortie->setStatus($status);
-                $sortie->setPublicationDate(new \DateTimeImmutable());
+
                 $em->persist($sortie);
                 $em->flush();
                 $this->addFlash('success', 'Sortie publiée avec succès !');
@@ -175,7 +175,7 @@ final class SortieController extends AbstractController
             } elseif ($request->request->has('publish')) {
                 $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
                 $sortie->setStatus($status);
-                $sortie->setPublicationDate(new \DateTimeImmutable());
+
                 $em->flush();
                 $this->addFlash('success', 'Sortie modifiée et publiée avec succès !');
             }
@@ -223,7 +223,7 @@ final class SortieController extends AbstractController
 
         $status = $statusRepository->findOneBy(['status_label' => 'Ouverte']);
         $sortie->setStatus($status);
-        $sortie->setPublicationDate(new \DateTimeImmutable());
+
         $em->flush();
 
         $this->addFlash('success', 'La sortie a été publiée avec succès !');
