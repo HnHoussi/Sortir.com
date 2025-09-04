@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\PlaceRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PlaceRepository::class)]
 class Place
@@ -15,9 +16,11 @@ class Place
     private ?int $id = null;
 
     #[ORM\Column(length: 40)]
+    #[Assert\NotBlank(message: 'Le nom du lieu est obligatoire.')]
     private ?string $place_name = null;
 
     #[ORM\Column(length: 40, nullable: true)]
+    #[Assert\NotBlank(message: 'Le nom de la rue est obligatoire.')]
     private ?string $street = null;
 
     #[ORM\Column(nullable: true)]

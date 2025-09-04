@@ -7,21 +7,30 @@
 <div class="container mt-4">
     <h1 class="mb-4">Sorties disponibles</h1>
 
-    {% if app.user %}
-        {{ form_start(form) }}
-        <div class="row g-3">
-            {% for field in form %}
-                <div class="col-md-4">
-                    {{ form_row(field) }}
+        {% if app.user %}
+            {{ form_start(form) }}
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-md-4">
+                        {{ form_row(field) }}
+                    </div>
+                {% endfor %}
+                <div>
+                    <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Rechercher</button>
                 </div>
-            {% endfor %}
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary">Rechercher</button>
             </div>
-        </div>
-        {{ form_end(form) }}
-    {% endif %}
+            {{ form_end(form) }}
+        {% endif %}
+
+        {% if is_granted('ROLE_ADMIN') %}
+            <form action="{{ path('sortie_archive') }}" method="post" class="d-inline-flex">
+                <button type="submit" class="btn btn-info ms-3">Archiver</button>
+            </form>
+        {% endif %}
+    </div>
 </div>
+
     <div class="container mt-5">
         <div class="row">
             {% for sortie in sorties %}

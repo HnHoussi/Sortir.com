@@ -29,7 +29,6 @@ use DateTime;
 #[IsGranted('ROLE_USER')]
 final class SortieController extends AbstractController
 {
-//    SLB : modif de la fonction pour que l'affichage par défaut, sans utiliser de filtre, exclue les sorties archivées de la vue
     #[Route('', name: '_list')]
     public function list(SortieRepository $sortieRepository, Request $request): Response
     {
@@ -63,7 +62,7 @@ final class SortieController extends AbstractController
         ]);
     }
 
-    #[Route('/archive', name: '_archive', methods: ['GET'])]
+    #[Route('/archive', name: '_archive', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function archiveSorties(SortieRepository $sortieRepository, EntityManagerInterface $entityManager): RedirectResponse
     {

@@ -128,20 +128,6 @@ class SortieRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findVisibleSorties(User $user): array
-    {
-        return $this->createQueryBuilder('s')
-            ->leftJoin('s.status', 'st')
-            ->leftJoin('s.organizer', 'o')
-            // Ne pas afficher les sorties "Créées" qui ne sont pas de l'organisateur actuel
-            ->andWhere('st.statusLabel != :cree OR o.id = :userId')
-            ->setParameter('cree', 'Créée')
-            ->setParameter('userId', $user->getId())
-            ->orderBy('s.startDatetime', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
     public function findUpcomingSorties(): array
     {
         $targetTime = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
