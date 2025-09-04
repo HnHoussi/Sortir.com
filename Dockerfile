@@ -15,6 +15,10 @@ RUN apt-get update && apt-get install -y \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Point Apache to Symfony's /public directory
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
+    && sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/apache2.conf
+
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -24,18 +28,10 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Force prod environment during build
-ENV APP_ENV=prod
-ENV APP_DEBUG=0
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# Install PHP dependencies without running Symfony scripts
-RUN composer install --no-dev --optimize-autoloader --no-scripts
-
-# Clear and warm up Symfony cache explicitly in prod mode
-RUN APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup \
- && APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup
-
-# Set permissions (optional, depending on your app)
+# Set permissions
 RUN chown -R www-data:www-data /var/www/html/var /var/www/html/vendor
 
 # Expose port 80
