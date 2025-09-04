@@ -27,10 +27,7 @@
                 <ul class="navbar-nav ms-auto">
                     {% if is_granted('ROLE_ADMIN') %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('admin_users_list') }}">-- Liste des utilisateurs</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('sortie_archive') }}">Archivage des sorties éligibles --</a>
+                            <a class="nav-link" href="{{ path('admin_users_list') }}">Liste des utilisateurs</a>
                         </li>
                     {% endif %}
                     <li class="nav-item">
@@ -56,15 +53,18 @@
         </div>
     </nav>
 
-    {% for type, messages in app.flashes %}
-        {%  for message in messages %}
-            <div class="alert alert-{{ type }}">
-                {{ message }}
-            </div>
+    <div class="container mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
+    </div>
 
-        {% block body %}{% endblock %}
+
+    {% block body %}{% endblock %}
 
 
     {# Footer #}
