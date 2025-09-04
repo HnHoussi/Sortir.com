@@ -40,8 +40,8 @@ final class SortieController extends AbstractController
             $form = $this->createForm(SortieFilterType::class);
             $form->handleRequest($request);
 
-        $filters = $form->getData() ?? [];
-        $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
+            $filters = $form->getData() ?? [];
+            $sorties = $sortieRepository->findFilteredFromForm($filters, $user);
             // Initialise les filtres avec un tableau vide
             $filters = [];
 
@@ -351,7 +351,32 @@ final class SortieController extends AbstractController
             'sortie' => $sortie,
             'form' => $form->createView(),
         ]);
-
     }
 
+    #[Route('/admin/sortie/{id}/annuler', name: 'admin_annuler_sortie')]
+    public function annulerSortie(Request $request, Sortie $sortie, EntityManagerInterface $em): Response
+    {
+        $now = new \DateTime();
+
+        if ($sortie->getDateHeureDebut() <= $now) {
+            $this->addFlash('error', 'Impossible d\'annuler : la sortie a déjà commencé.');
+            return $this->redirectToRoute('admin_liste_sorties');
+        }
+
+        if ($request->isMethod('POST')) {
+            $motif = $request->request->get('motif');
+            $etatAnnulee = $em->getRepository(Etat::class)->findOneBy(['libelle' => 'Annulée']);
+
+            $sortie->setEtat($etatAnnulee);
+            $sortie->setMotifAnnulation($motif);
+
+            $em->flush();
+            $this->addFlash('success', 'Sortie annulée avec succès.');
+            return $this->redirectToRoute('admin_liste_sorties');
+        }
+
+        return $this->render('admin/annuler_sortie.html.twig', [
+            'sortie' => $sortie,
+        ]);
+    }
 }
