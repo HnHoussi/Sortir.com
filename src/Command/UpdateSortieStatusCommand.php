@@ -34,50 +34,50 @@ class UpdateSortieStatusCommand extends Command
         $this->statusRepository = $statusRepository;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $io = new SymfonyStyle($input, $output);
-        $now = new \DateTimeImmutable();
-
-        // 1. Récupère le statut 'Ouverte'
-        $openStatus = $this->statusRepository->findOneBy(['status_label' => 'Ouverte']);
-        $closedStatus = $this->statusRepository->findOneBy(['status_label' => 'Fermée']);
-        $createdStatus = $this->statusRepository->findOneBy(['status_label' => 'Créée']);
-
-        if (!$openStatus || !$closedStatus || !$createdStatus) {
-            $io->error('Un des statuts par défaut (Ouverte, Fermée, Créée) n\'a pas été trouvé.');
-            return Command::FAILURE;
-        }
-
-        // --- Logique pour les sorties "Créée" -> "Ouverte" ---
-        $sortiesToOpen = $this->sortieRepository->findSortiesToOpen($now);
-        $countOpen = count($sortiesToOpen);
-
-        foreach ($sortiesToOpen as $sortie) {
-            $sortie->setStatus($openStatus);
-        }
-
-        // --- Logique pour les sorties "Ouverte" -> "Fermée" ---
-        $sortiesToClose = $this->sortieRepository->findSortiesToClose($now);
-        $countClose = count($sortiesToClose);
-
-        foreach ($sortiesToClose as $sortie) {
-            $sortie->setStatus($closedStatus);
-        }
-
-
-        // Enregistrement des modifications en base de données
-        $this->entityManager->flush();
-
-        $io->success(sprintf(
-            '%d sortie(s) passée(s) en "Ouverte".',
-            $countOpen
-        ));
-        $io->success(sprintf(
-            '%d sortie(s) passée(s) en "Fermée".',
-            $countClose
-        ));
-
-        return Command::SUCCESS;
-    }
+//    protected function execute(InputInterface $input, OutputInterface $output): int
+//    {
+//        $io = new SymfonyStyle($input, $output);
+//        $now = new \DateTimeImmutable();
+//
+//        // 1. Récupère le statut 'Ouverte'
+//        $openStatus = $this->statusRepository->findOneBy(['status_label' => 'Ouverte']);
+//        $closedStatus = $this->statusRepository->findOneBy(['status_label' => 'Fermée']);
+//        $createdStatus = $this->statusRepository->findOneBy(['status_label' => 'Créée']);
+//
+//        if (!$openStatus || !$closedStatus || !$createdStatus) {
+//            $io->error('Un des statuts par défaut (Ouverte, Fermée, Créée) n\'a pas été trouvé.');
+//            return Command::FAILURE;
+//        }
+//
+//        // --- Logique pour les sorties "Créée" -> "Ouverte" ---
+//        $sortiesToOpen = $this->sortieRepository->findSortiesToOpen($now);
+//        $countOpen = count($sortiesToOpen);
+//
+//        foreach ($sortiesToOpen as $sortie) {
+//            $sortie->setStatus($openStatus);
+//        }
+//
+//        // --- Logique pour les sorties "Ouverte" -> "Fermée" ---
+//        $sortiesToClose = $this->sortieRepository->findSortiesToClose($now);
+//        $countClose = count($sortiesToClose);
+//
+//        foreach ($sortiesToClose as $sortie) {
+//            $sortie->setStatus($closedStatus);
+//        }
+//
+//
+//        // Enregistrement des modifications en base de données
+//        $this->entityManager->flush();
+//
+//        $io->success(sprintf(
+//            '%d sortie(s) passée(s) en "Ouverte".',
+//            $countOpen
+//        ));
+//        $io->success(sprintf(
+//            '%d sortie(s) passée(s) en "Fermée".',
+//            $countClose
+//        ));
+//
+//        return Command::SUCCESS;
+//    }
 }
