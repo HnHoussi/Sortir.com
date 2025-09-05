@@ -298,17 +298,22 @@ final class UserController extends AbstractController
     }
 
 
-    #[Route('/admin/user/{id}/delete', name: 'admin_user_delete')]
-    public function adminDeleteUser(User $user, EntityManagerInterface $em, AnonymizerService $anonymizer): Response
+    #[Route('/admin/user/{id}/delete', name: 'admin_user_delete', requirements: ['id' => '\d+'])]
+    public function adminDeleteUser(
+        User $user,
+        EntityManagerInterface $em,
+        AnonymizerService $anonymizer): Response
     {
+        // connected user
         $currentUser = $this->getUser();
 
-        // Prevent deleting another admin
+        // block deleting other admins
         if (in_array('ROLE_ADMIN', $user->getRoles(), true) && $user !== $currentUser) {
             $this->addFlash('danger', 'Vous ne pouvez pas supprimer un autre administrateur.');
             return $this->redirectToRoute('admin_users_list');
         }
 
+        // service anonymizer
         $anonymizer->anonymize($user);
         $em->flush();
         $this->addFlash('success', 'Utilisateur supprimé avec succès.');
