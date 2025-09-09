@@ -144,7 +144,7 @@ final class UserController extends AbstractController
                 $filePath = $csvFile->getRealPath();
 
                 if (($handle = fopen($filePath, 'r')) !== false) {
-                    fgetcsv($handle); // 🔥 skip header
+                    fgetcsv($handle); // skip header
                     $lineNumber = 1;
                     $successCount = 0;
                     $errors = [];
@@ -188,12 +188,12 @@ final class UserController extends AbstractController
                         $user->setPhone($phone);
                         $user->setRoles([$role]);
 
-                        // Password par défaut
+                        // Password défauttt
                         $defaultPassword = 'Password 1';
                         $hashedPassword = $passwordHasher->hashPassword($user, $defaultPassword);
                         $user->setPassword($hashedPassword);
 
-                        // 🔥 Validation avec les contraintes de l’entité User
+                        // Validation avec les contraintes de l’entité User
                         $violations = $validator->validate($user, null, ['Default']);
 
                         if (count($violations) > 0) {
@@ -204,7 +204,7 @@ final class UserController extends AbstractController
                             continue;
                         }
 
-                        // Ajout si tout est OK
+                        // Ajout si tout est nickel
                         $em->persist($user);
                         $successCount++;
                     }
